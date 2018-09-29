@@ -3,4 +3,6 @@
     <string name="homepage_img_description">congress_img</string>
     <string name="search_title">Search here</string>
     <string name="search_hint">Search 115th Congress</string>
+    <string name="action_location">action location</string>
+    <string name="action_random">action random</string>
 </resources>
