@@ -104,7 +104,7 @@
             app:floatingSearch_searchBarMarginTop="@dimen/search_view_inset"
             app:floatingSearch_searchHint="@string/search_hint"
             app:floatingSearch_showSearchKey="false"
-            app:floatingSearch_suggestionsListAnimDuration="250" />
+            app:floatingSearch_suggestionsListAnimDuration="250"/>
 
         <info.alexanderchen.represent.FontAwesome
             android:id="@+id/random_location"
