@@ -5,10 +5,10 @@
         android:title="@string/action_location"
         android:orderInCategory="1"
         app:showAsAction="ifRoom"
-        android:icon="@drawable/ic_action_location"/>
+        android:icon="@drawable/ic_gps_fixed_black_24dp"/>
     <item android:id="@+id/action_location"
         android:title="@string/action_random"
         android:orderInCategory="2"
         app:showAsAction="ifRoom"
-        android:icon="@drawable/ic_action_location"/>
+        android:icon="@drawable/ic_dice"/>
 </menu>

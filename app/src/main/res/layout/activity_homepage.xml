@@ -103,7 +103,7 @@
             app:floatingSearch_searchBarMarginRight="@dimen/search_view_inset"
             app:floatingSearch_searchBarMarginTop="@dimen/search_view_inset"
             app:floatingSearch_searchHint="@string/search_hint"
-            app:floatingSearch_showSearchKey="false"
+            app:floatingSearch_showSearchKey="true"
             app:floatingSearch_suggestionsListAnimDuration="250"/>
 
         <info.alexanderchen.represent.FontAwesome
@@ -121,34 +121,35 @@
             android:textSize="28sp" />
 
         <ImageView
-            android:id="@+id/congress_bw"
-            android:layout_width="match_parent"
-            android:layout_height="192dp"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:alpha=".15"
-            android:contentDescription="@string/homepage_img_description"
-            android:scaleType="centerInside" />
+            android:id="@+id/imageViewCongressBg"
+            android:layout_width="250dp"
+            android:layout_height="250dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="140dp"
+            android:alpha="0.15"
+            android:scaleType="centerInside"
+            app:srcCompat="@drawable/congress_bw" />
 
         <TextView
-            android:id="@+id/textView2"
+            android:id="@+id/textViewNoDataTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_alignParentStart="true"
-            android:layout_marginBottom="165dp"
+            android:layout_marginBottom="178dp"
             android:gravity="center"
             android:text="No congressional representatives here"
             android:textAppearance="@android:style/TextAppearance.Medium"
             android:textColor="#4f4f4f" />
 
         <TextView
-            android:id="@+id/textView3"
+            android:id="@+id/textViewNoDataDetail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
             android:layout_alignParentStart="true"
-            android:layout_marginBottom="134dp"
+            android:layout_below="@+id/textViewNoDataTitle"
+            android:layout_marginTop="-175dp"
             android:gravity="center"
             android:text="Tap the search bar above to search OR"
             android:textAppearance="@android:style/TextAppearance.Medium"
@@ -156,12 +157,14 @@
             android:textSize="14sp" />
 
         <Button
-            android:id="@+id/button"
+            android:id="@+id/buttonShowMeSomething"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
-            android:layout_marginBottom="63dp"
+            android:layout_marginBottom="95dp"
+            android:layout_marginLeft="100dp"
+            android:layout_marginRight="100dp"
             android:background="@color/colorSecondary"
             android:text="SHOW ME SOMETHING" />
 

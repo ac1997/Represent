@@ -1,7 +1,12 @@
 package info.alexanderchen.represent;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Location;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -10,23 +15,42 @@ import android.text.Html;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.SearchSuggestionsAdapter;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
-import com.arlib.floatingsearchview.util.Util;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.util.List;
 
 import info.alexanderchen.represent.adapter.SearchResultsListAdapter;
-import info.alexanderchen.represent.data.ColorSuggestion;
-import info.alexanderchen.represent.data.ColorWrapper;
 import info.alexanderchen.represent.data.DataHelper;
+import info.alexanderchen.represent.data.ZipCodeSuggestion;
+import info.alexanderchen.represent.data.ZipCodeWrapper;
 
 public class HomepageActivity extends AppCompatActivity {
+
+    private static final String CURRENT_LOCATION = "Current Location";
+    private static final String RANDOM_LOCATION = "Random Location";
+
+    private FusedLocationProviderClient mFusedLocationClient;
+
+    private ImageView mCogressImageView;
+    private TextView mNoDataTitleTextView;
+    private TextView mNoDataDetailTextView;
+    private Button mShowMeSomethingButton;
 
     private final String TAG = "BlankFragment";
 
@@ -37,9 +61,12 @@ public class HomepageActivity extends AppCompatActivity {
     private RecyclerView mSearchResultsList;
     private SearchResultsListAdapter mSearchResultsAdapter;
 
-    private boolean mIsDarkSearchTheme = false;
+    private boolean mSuggestionClicked = false;
 
     private String mLastQuery = "";
+    private String actualQuery = "";
+
+    private static RequestQueue queue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +78,15 @@ public class HomepageActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        mSearchView = (FloatingSearchView) findViewById(R.id.floating_search_view);
-        mSearchResultsList = (RecyclerView) findViewById(R.id.search_results_list);
+        mSearchView = findViewById(R.id.floating_search_view);
+        mSearchResultsList = findViewById(R.id.search_results_list);
+        mCogressImageView = findViewById(R.id.imageViewCongressBg);
+        mNoDataTitleTextView = findViewById(R.id.textViewNoDataTitle);
+        mNoDataDetailTextView = findViewById(R.id.textViewNoDataDetail);
+        mShowMeSomethingButton = findViewById(R.id.buttonShowMeSomething);
+
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        queue = Volley.newRequestQueue(this);
 
         setupFloatingSearch();
         setupResultsList();
@@ -64,7 +98,11 @@ public class HomepageActivity extends AppCompatActivity {
             @Override
             public void onSearchTextChanged(String oldQuery, final String newQuery) {
 
-                if (!oldQuery.equals("") && newQuery.equals("")) {
+                if (mSuggestionClicked) {
+                    mSuggestionClicked = false;
+                    mSearchView.clearSuggestions();
+                } else if (!oldQuery.equals("") && newQuery.equals("")) {
+                    mLastQuery = "";
                     mSearchView.clearSuggestions();
                 } else {
 
@@ -72,6 +110,7 @@ public class HomepageActivity extends AppCompatActivity {
                     //you can call it where ever you want, but
                     //it makes sense to do it when loading something in
                     //the background.
+                    mLastQuery = newQuery;
                     mSearchView.showProgress();
 
                     //simulates a query call to a data source
@@ -80,7 +119,7 @@ public class HomepageActivity extends AppCompatActivity {
                             FIND_SUGGESTION_SIMULATED_DELAY, new DataHelper.OnFindSuggestionsListener() {
 
                                 @Override
-                                public void onResults(List<ColorSuggestion> results) {
+                                public void onResults(List<ZipCodeSuggestion> results) {
 
                                     //this will swap the data and
                                     //render the collapse/expand animations as necessary
@@ -101,34 +140,44 @@ public class HomepageActivity extends AppCompatActivity {
             @Override
             public void onSuggestionClicked(final SearchSuggestion searchSuggestion) {
 
-                ColorSuggestion colorSuggestion = (ColorSuggestion) searchSuggestion;
-                DataHelper.findColors(getApplicationContext(), colorSuggestion.getBody(),
-                        new DataHelper.OnFindColorsListener() {
+                ZipCodeSuggestion zipCodeSuggestion = (ZipCodeSuggestion) searchSuggestion;
+                DataHelper.findResults(HomepageActivity.this, zipCodeSuggestion.getBody(), queue, mFusedLocationClient,
+                        new DataHelper.OnFindResultsListener() {
 
                             @Override
-                            public void onResults(List<ColorWrapper> results) {
+                            public void onResults(List<ZipCodeWrapper> results) {
+                                hideBackground();
                                 mSearchResultsAdapter.swapData(results);
                             }
 
                         });
-                Log.d(TAG, "onSuggestionClicked()");
-
+                mSuggestionClicked = true;
                 mLastQuery = searchSuggestion.getBody();
+                mSearchView.setSearchText(mLastQuery);
+                mSearchView.clearSearchFocus();
+                Log.d(TAG, "onSuggestionClicked()");
             }
 
+            @SuppressLint("MissingPermission")
             @Override
             public void onSearchAction(String query) {
                 mLastQuery = query;
+                Log.d(TAG, "onSearchAction() query: " + query);
 
-                DataHelper.findColors(getApplicationContext(), query,
-                        new DataHelper.OnFindColorsListener() {
+                DataHelper.findResults(HomepageActivity.this, query, queue, mFusedLocationClient,
+                new DataHelper.OnFindResultsListener() {
 
-                            @Override
-                            public void onResults(List<ColorWrapper> results) {
-                                mSearchResultsAdapter.swapData(results);
-                            }
+                    @Override
+                    public void onResults(List<ZipCodeWrapper> results) {
+                        hideBackground();
+                        mSearchResultsAdapter.swapData(results);
+                    }
 
-                        });
+                });
+                mSuggestionClicked = true;
+                mSearchView.setSearchText(mLastQuery);
+                mSearchView.clearSearchFocus();
+
                 Log.d(TAG, "onSearchAction()");
             }
         });
@@ -147,7 +196,7 @@ public class HomepageActivity extends AppCompatActivity {
             public void onFocusCleared() {
 
                 //set the title of the bar so that when focus is returned a new query begins
-                mSearchView.setSearchBarTitle(mLastQuery);
+                mSearchView.setSearchText(mLastQuery);
 
                 //you can also set setSearchText(...) to make keep the query there when not focused and when focus returns
                 //mSearchView.setSearchText(searchSuggestion.getBody());
@@ -164,24 +213,37 @@ public class HomepageActivity extends AppCompatActivity {
             public void onActionMenuItemSelected(MenuItem item) {
 
                 if (item.getItemId() == R.id.action_location) {
+                    mLastQuery = CURRENT_LOCATION;
+                    Log.d(TAG, "onSearchAction() query: " + CURRENT_LOCATION);
 
-                    mIsDarkSearchTheme = true;
+                    DataHelper.findResults(HomepageActivity.this, CURRENT_LOCATION, queue, mFusedLocationClient,
+                            new DataHelper.OnFindResultsListener() {
 
-                    //demonstrate setting colors for items
-                    mSearchView.setBackgroundColor(Color.parseColor("#787878"));
-                    mSearchView.setViewTextColor(Color.parseColor("#e9e9e9"));
-                    mSearchView.setHintTextColor(Color.parseColor("#e9e9e9"));
-                    mSearchView.setActionMenuOverflowColor(Color.parseColor("#e9e9e9"));
-                    mSearchView.setMenuItemIconColor(Color.parseColor("#e9e9e9"));
-                    mSearchView.setLeftActionIconColor(Color.parseColor("#e9e9e9"));
-                    mSearchView.setClearBtnColor(Color.parseColor("#e9e9e9"));
-                    mSearchView.setDividerColor(Color.parseColor("#BEBEBE"));
-                    mSearchView.setLeftActionIconColor(Color.parseColor("#e9e9e9"));
-                } else {
+                                @Override
+                                public void onResults(List<ZipCodeWrapper> results) {
+                                    hideBackground();
+                                    mSearchResultsAdapter.swapData(results);
+                                }
 
-                    //just print action
-                    Toast.makeText(getApplicationContext().getApplicationContext(), item.getTitle(),
-                            Toast.LENGTH_SHORT).show();
+                            });
+                    mSuggestionClicked = true;
+                    mSearchView.setSearchText(mLastQuery);
+                } else if (item.getItemId() == R.id.action_random) {
+                    mLastQuery = RANDOM_LOCATION;
+                    Log.d(TAG, "onSearchAction() query: " + RANDOM_LOCATION);
+
+                    DataHelper.findResults(HomepageActivity.this, RANDOM_LOCATION, queue, mFusedLocationClient,
+                            new DataHelper.OnFindResultsListener() {
+
+                                @Override
+                                public void onResults(List<ZipCodeWrapper> results) {
+                                    hideBackground();
+                                    mSearchResultsAdapter.swapData(results);
+                                }
+
+                            });
+                    mSuggestionClicked = true;
+                    mSearchView.setSearchText(mLastQuery);
                 }
 
             }
@@ -211,26 +273,22 @@ public class HomepageActivity extends AppCompatActivity {
             @Override
             public void onBindSuggestion(View suggestionView, ImageView leftIcon,
                                          TextView textView, SearchSuggestion item, int itemPosition) {
-                ColorSuggestion colorSuggestion = (ColorSuggestion) item;
+                ZipCodeSuggestion zipCodeSuggestion = (ZipCodeSuggestion) item;
 
-                String textColor = mIsDarkSearchTheme ? "#ffffff" : "#000000";
-                String textLight = mIsDarkSearchTheme ? "#bfbfbf" : "#787878";
 
-                if (colorSuggestion.getIsHistory()) {
+                if (zipCodeSuggestion.getIsHistory()) {
                     leftIcon.setImageDrawable(ResourcesCompat.getDrawable(getResources(),
                             R.drawable.ic_history_black_24dp, null));
 
-                    Util.setIconColor(leftIcon, Color.parseColor(textColor));
                     leftIcon.setAlpha(.36f);
                 } else {
                     leftIcon.setAlpha(0.0f);
                     leftIcon.setImageDrawable(null);
                 }
 
-                textView.setTextColor(Color.parseColor(textColor));
-                String text = colorSuggestion.getBody()
+                String text = zipCodeSuggestion.getBody()
                         .replaceFirst(mSearchView.getQuery(),
-                                "<font color=\"" + textLight + "\">" + mSearchView.getQuery() + "</font>");
+                                "<font color=\"#000000\">" + mSearchView.getQuery() + "</font>");
                 textView.setText(Html.fromHtml(text));
             }
 
@@ -254,7 +312,19 @@ public class HomepageActivity extends AppCompatActivity {
         mSearchView.setOnClearSearchActionListener(new FloatingSearchView.OnClearSearchActionListener() {
             @Override
             public void onClearSearchClicked() {
+                mLastQuery = "";
 
+                DataHelper.findSuggestions(null, "", 5,
+                        FIND_SUGGESTION_SIMULATED_DELAY, new DataHelper.OnFindSuggestionsListener() {
+
+                            @Override
+                            public void onResults(List<ZipCodeSuggestion> results) {
+
+                                //this will swap the data and
+                                //render the collapse/expand animations as necessary
+                                mSearchView.swapSuggestions(results);
+                            }
+                        });
                 Log.d(TAG, "onClearSearchClicked()");
             }
         });
@@ -277,5 +347,12 @@ public class HomepageActivity extends AppCompatActivity {
 //            return false;
 //        }
 //        return true;
+    }
+
+    private void hideBackground() {
+        mCogressImageView.setVisibility(View.GONE);
+        mNoDataTitleTextView.setVisibility(View.GONE);
+        mNoDataDetailTextView.setVisibility(View.GONE);
+        mShowMeSomethingButton.setVisibility(View.GONE);
     }
 }

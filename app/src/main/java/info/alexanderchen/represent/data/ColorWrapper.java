@@ -34,6 +34,8 @@ public class ColorWrapper implements Parcelable {
     @Expose
     private String rgb;
 
+
+
     private ColorWrapper(Parcel in) {
         hex = in.readString();
         name = in.readString();

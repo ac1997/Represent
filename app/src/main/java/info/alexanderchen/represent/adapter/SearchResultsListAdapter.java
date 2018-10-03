@@ -1,8 +1,6 @@
 package info.alexanderchen.represent.adapter;
 
 import android.app.Activity;
-import android.graphics.Color;
-import android.support.v7.graphics.Palette;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,23 +8,22 @@ import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.TextView;
 
-
 import com.arlib.floatingsearchview.util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import info.alexanderchen.represent.R;
-import info.alexanderchen.represent.data.ColorWrapper;
+import info.alexanderchen.represent.data.ZipCodeWrapper;
 
 public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResultsListAdapter.ViewHolder> {
 
-    private List<ColorWrapper> mDataSet = new ArrayList<>();
+    private List<ZipCodeWrapper> mDataSet = new ArrayList<>();
 
     private int mLastAnimatedItemPosition = -1;
 
     public interface OnItemClickListener{
-        void onClick(ColorWrapper colorWrapper);
+        void onClick(ZipCodeWrapper zipCodeWrapper);
     }
 
     private OnItemClickListener mItemsOnClickListener;
@@ -44,7 +41,7 @@ public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResults
         }
     }
 
-    public void swapData(List<ColorWrapper> mNewDataSet) {
+    public void swapData(List<ZipCodeWrapper> mNewDataSet) {
         mDataSet = mNewDataSet;
         notifyDataSetChanged();
     }
@@ -63,13 +60,8 @@ public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResults
     @Override
     public void onBindViewHolder(SearchResultsListAdapter.ViewHolder holder, final int position) {
 
-        ColorWrapper colorSuggestion = mDataSet.get(position);
-        holder.mColorName.setText(colorSuggestion.getName());
-        holder.mColorValue.setText(colorSuggestion.getHex());
-
-        int color = Color.parseColor(colorSuggestion.getHex());
-        holder.mColorName.setTextColor(color);
-        holder.mColorValue.setTextColor(color);
+        ZipCodeWrapper zipCodeSuggestion = mDataSet.get(position);
+        holder.mColorName.setText(zipCodeSuggestion.getZipCode());
 
         if(mLastAnimatedItemPosition < position){
             animateItem(holder.itemView);
