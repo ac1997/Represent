@@ -18,7 +18,7 @@ public class InsetDividerItemDecoration extends RecyclerView.ItemDecoration {
 
     @Override
     public void onDrawOver(Canvas c, RecyclerView parent, RecyclerView.State state) {
-        int left = 350;
+        int left = 330;
         int right = parent.getWidth() - parent.getPaddingRight();
         Log.d("DIVIDER", Integer.toString(right));
 

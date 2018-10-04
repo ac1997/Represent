@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.arlib.floatingsearchview.util.Util;
@@ -17,34 +18,36 @@ import java.util.List;
 
 import info.alexanderchen.represent.R;
 import info.alexanderchen.represent.Typefaces;
-import info.alexanderchen.represent.data.ZipCodeWrapper;
+import info.alexanderchen.represent.data.CongressMemberWrapper;
 
 public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResultsListAdapter.ViewHolder> {
 
-    private List<ZipCodeWrapper> mDataSet = new ArrayList<>();
+    private List<CongressMemberWrapper> mDataSet = new ArrayList<>();
 
     private int mLastAnimatedItemPosition = -1;
 
     public interface OnItemClickListener{
-        void onClick(ZipCodeWrapper zipCodeWrapper);
+        void onClick(CongressMemberWrapper congressMemberWrapper);
     }
 
     private OnItemClickListener mItemsOnClickListener;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
+        public final ImageView mMemberPicture;
+        public final ImageView mMemberParty;
         public final TextView mMemberName;
         public final TextView mMemberDesc;
-        public final View mTextContainer;
 
         public ViewHolder(View view) {
             super(view);
-            mMemberName = (TextView) view.findViewById(R.id.member_name);
-            mMemberDesc = (TextView) view.findViewById(R.id.member_basic_desc);
-            mTextContainer = view.findViewById(R.id.text_container);
+            mMemberPicture = view.findViewById(R.id.member_image);
+            mMemberParty = view.findViewById(R.id.member_party);
+            mMemberName = view.findViewById(R.id.member_name);
+            mMemberDesc = view.findViewById(R.id.member_basic_desc);
         }
     }
 
-    public void swapData(List<ZipCodeWrapper> mNewDataSet) {
+    public void swapData(List<CongressMemberWrapper> mNewDataSet) {
         mDataSet = mNewDataSet;
         notifyDataSetChanged();
     }
@@ -57,9 +60,13 @@ public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResults
     public SearchResultsListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.search_results_list_item, parent, false);
-        Typeface font = Typefaces.get(parent.getContext(), "fa-regular-400.ttf");
 
-        Button button = view.findViewById(R.id.button_email);
+        Typeface font = Typefaces.get(parent.getContext(), "fa-regular-400.ttf");
+        Button button;
+
+        button = view.findViewById(R.id.button_email);
+        button.setTypeface(font);
+        button = view.findViewById(R.id.button_website);
         button.setTypeface(font);
 
         return new ViewHolder(view);
@@ -68,8 +75,9 @@ public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResults
     @Override
     public void onBindViewHolder(SearchResultsListAdapter.ViewHolder holder, final int position) {
 
-        ZipCodeWrapper zipCodeSuggestion = mDataSet.get(position);
-        holder.mMemberName.setText(zipCodeSuggestion.getZipCode());
+        CongressMemberWrapper congressMember = mDataSet.get(position);
+        holder.mMemberName.setText(congressMember.getName());
+        holder.mMemberDesc.setText(congressMember.getParty()+" | "+congressMember.getRole());
 
         if(mLastAnimatedItemPosition < position){
             animateItem(holder.itemView);

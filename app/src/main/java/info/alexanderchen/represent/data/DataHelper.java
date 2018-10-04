@@ -1,17 +1,21 @@
 package info.alexanderchen.represent.data;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.Filter;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -26,7 +30,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
 
 import info.alexanderchen.represent.HomepageActivity;
@@ -38,7 +47,7 @@ public class DataHelper {
     private static final String GEOCODIO_API_BASE_URL = "https://api.geocod.io/v1.3/";
     private static final String GEOCODIO_API_KEY = "&api_key=151b1577336556aec761babcbb5b11616b3ba0c";
 
-    private static final String PROPUBLICA_API_BASE_URL = "https://api.propublica.org/congress/v1";
+    private static final String PROPUBLICA_API_BASE_URL = "https://api.propublica.org/congress/v1/";
     private static final String PROPUBLICA_API_KEY = "wDLaqJO9eo46ODiznW024sRPIR1LBN6PBJgABNKT";
 
     private static List<Pair<Integer, Integer>> sValidZipCodes = new ArrayList<>(Arrays.asList(
@@ -78,15 +87,15 @@ public class DataHelper {
     private static String actualAddress;
     private static List<String> congressionalDistricts = new ArrayList<>();
 
-    private static List<ZipCodeWrapper> sZipCodeWrappers = new ArrayList<>();
-
     private static List<ZipCodeSuggestion> sZipCodeSuggestions =
             new ArrayList<>(Arrays.asList(
                     new ZipCodeSuggestion(CURRENT_LOCATION),
                     new ZipCodeSuggestion(RANDOM_LOCATION)));
 
+    private static List<CongressMemberWrapper> results = new ArrayList<>();
+
     public interface OnFindResultsListener {
-        void onResults(List<ZipCodeWrapper> results);
+        void onResults(List<CongressMemberWrapper> results);
     }
 
     public interface OnFindSuggestionsListener {
@@ -209,13 +218,12 @@ public class DataHelper {
 
                                 String url = GEOCODIO_API_BASE_URL+"reverse?q="+latLong+GEOCODIO_API_KEY;
 
-                                StringRequest reverseGeocodioRequest = new StringRequest(Request.Method.GET, url,
-                                        new Response.Listener<String>() {
+                                JsonObjectRequest reverseGeocodioRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+                                        new Response.Listener<JSONObject>() {
                                             @Override
-                                            public void onResponse(String response) {
+                                            public void onResponse(JSONObject response) {
                                                 try {
-                                                    JSONObject jsonObj = new JSONObject(response);
-                                                    JSONArray array = jsonObj.getJSONArray("results");
+                                                    JSONArray array = response.getJSONArray("results");
                                                     actualAddress = array.getJSONObject(0).getString("formatted_address");
                                                     Log.d("VOLLEY: ","Response is: "+ actualAddress);
                                                     requestResults(context, queue, listener);
@@ -223,12 +231,13 @@ public class DataHelper {
                                                     Log.e("JSON Exception", e.toString());
                                                 }
                                             }
-                                        }, new Response.ErrorListener() {
-                                    @Override
-                                    public void onErrorResponse(VolleyError error) {
-                                        Log.d("VOLLEY: ","That didn't work!");
-                                    }
-                                });
+                                        },
+                                        new Response.ErrorListener() {
+                                            @Override
+                                            public void onErrorResponse(VolleyError error) {
+                                                Log.d("VOLLEY: ","That didn't work!");
+                                            }
+                                        });
                                 queue.add(reverseGeocodioRequest);
                             } else {
                                 Log.d("Current Location:3", "NULL DETECTED");
@@ -254,111 +263,127 @@ public class DataHelper {
         }
     }
 
-    private static void getCongressionalDistricts(Context context, RequestQueue queue) {
+    public static void requestResults(Context context, final RequestQueue queue, final OnFindResultsListener listener) {
+        results.clear();
         congressionalDistricts.clear();
-        String url = GEOCODIO_API_BASE_URL+"geocode?q="+actualAddress+"&fields=cd115"+GEOCODIO_API_KEY;
+        String geocodioUrl = GEOCODIO_API_BASE_URL+"geocode?q="+actualAddress+"&fields=cd115"+GEOCODIO_API_KEY;
 
-        StringRequest reverseGeocodioRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
+        JsonObjectRequest geocodeGeocodioRequest = new JsonObjectRequest(Request.Method.GET, geocodioUrl, null,
+                new Response.Listener<JSONObject>() {
                     @Override
-                    public void onResponse(String response) {
+                    public void onResponse(JSONObject response) {
                         try {
-                            JSONObject jsonObj = new JSONObject(response);
+                            Set<String> memberId = new HashSet<>();
+                            Set<String> states = new HashSet<>();
+                            Set<String> stateAndDistricts = new HashSet<>();
 
-                            String state = jsonObj.getJSONArray("results").getJSONObject(0).getJSONObject("address_components").getString("state");
+                            JSONArray resultsArr = response.getJSONArray("results");
 
-                            Log.d("VOLLEY: ","State is: "+ state);
+                            for (int i = 0; i < resultsArr.length(); i++) {
+                                JSONObject result = resultsArr.getJSONObject(i);
+                                String state = result.getJSONObject("address_components").getString("state");
+                                states.add(state);
 
-                            JSONArray array = jsonObj.getJSONArray("results").getJSONObject(0).getJSONObject("fields").getJSONArray("congressional_districts");
-                            for(int i = 0 ; i < array.length() ; i++){
-                                congressionalDistricts.add(state + " " + array.getJSONObject(i).getString("district_number"));
-                                Log.d("VOLLEY LOOP: ","Congressional District is: "+ congressionalDistricts.get(i));
+                                JSONArray districtsArray = result.getJSONObject("fields").getJSONArray("congressional_districts");
+
+                                for (int j = 0; j < districtsArray.length(); j++) {
+                                    String districtNumber = districtsArray.getJSONObject(i).getString("district_number");
+                                    if(districtNumber.equals("0"))
+                                        districtNumber = "1";
+                                    stateAndDistricts.add(state+"/"+districtNumber);
+                                }
                             }
 
-                        } catch (JSONException e) {
-                            Log.e("JSON Exception", e.toString());
-                        }
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d("VOLLEY: ","That didn't work!");
-            }
-        });
-        queue.add(reverseGeocodioRequest);
-    }
-
-    public static void requestResults(Context context, RequestQueue queue, final OnFindResultsListener listener) {
-        congressionalDistricts.clear();
-        String url = GEOCODIO_API_BASE_URL+"geocode?q="+actualAddress+"&fields=cd115"+GEOCODIO_API_KEY;
-
-        StringRequest reverseGeocodioRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        try {
-                            JSONObject jsonObj = new JSONObject(response);
-
-                            String state = jsonObj.getJSONArray("results").getJSONObject(0).getJSONObject("address_components").getString("state");
-
-                            Log.d("VOLLEY: ","State is: "+ state);
-
-                            JSONArray array = jsonObj.getJSONArray("results").getJSONObject(0).getJSONObject("fields").getJSONArray("congressional_districts");
-                            for(int i = 0 ; i < array.length() ; i++){
-                                congressionalDistricts.add(state + " " + array.getJSONObject(i).getString("district_number"));
-                                Log.d("VOLLEY LOOP: ","Congressional District is: "+ congressionalDistricts.get(i));
-                            }
-
-                            sZipCodeWrappers.clear();
-                            sZipCodeWrappers.add(new ZipCodeWrapper(CURRENT_LOCATION));
-                            sZipCodeWrappers.add(new ZipCodeWrapper(RANDOM_LOCATION));
-                            Log.d("FINDRESULTS", actualAddress);
-                            new Filter() {
+                            new AsyncTask<Set<String>, Integer, List<CongressMemberWrapper>>() {
                                 @Override
-                                protected FilterResults performFiltering(CharSequence constraint) {
+                                protected List<CongressMemberWrapper> doInBackground(Set<String>... sets) {
+//                                    String proPublicaSenateUrl = PROPUBLICA_API_BASE_URL+"/members/senate/"+s+"/current.json";
+//                                    String proPublicaRepresentativeUrl = PROPUBLICA_API_BASE_URL+"/members/house/"+s+"/current.json";
+                                    final List<CongressMemberWrapper> congressMemberWrappers = new ArrayList<>();
 
-
-                                    List<ZipCodeWrapper> suggestionList = new ArrayList<>();
-
-                                    if (!(constraint == null || constraint.length() == 0)) {
-
-                                        for (ZipCodeWrapper zipCode : sZipCodeWrappers) {
-                                            if (zipCode.getZipCode().toUpperCase()
-                                                    .startsWith(constraint.toString().toUpperCase()) || zipCode.getZipCode().toUpperCase()
-                                                    .equals(CURRENT_LOCATION.toUpperCase()) || zipCode.getZipCode().toUpperCase()
-                                                    .equals(RANDOM_LOCATION.toUpperCase())) {
-                                                suggestionList.add(zipCode);
+                                    for (String s : sets[0]) {
+                                        String url = PROPUBLICA_API_BASE_URL+"members/senate/"+s+"/current.json";
+                                        Log.d("PROPUBLICA SUCCESS", url);
+                                        JsonObjectRequest proPublicaSenateRequest = new JsonObjectRequest(Request.Method.GET,
+                                                url, null,
+                                                new Response.Listener<JSONObject>() {
+                                                    @Override
+                                                    public void onResponse(JSONObject response) {
+                                                        Log.d("PROPUBLICA SUCCESS", response.toString());
+                                                        congressMemberWrappers.add(new CongressMemberWrapper(response.toString()));
+                                                    }
+                                                },
+                                                new Response.ErrorListener() {
+                                                    @Override
+                                                    public void onErrorResponse(VolleyError error) {
+                                                        Log.d("VOLLEY: ","That didn't work!");
+                                                    }
+                                                }
+                                        ) {
+                                            @Override
+                                            public Map getHeaders() throws AuthFailureError {
+                                                HashMap headers = new HashMap();
+                                                headers.put("X-API-Key", "wDLaqJO9eo46ODiznW024sRPIR1LBN6PBJgABNKT");
+                                                return headers;
                                             }
-                                        }
-
+                                        };
+                                        queue.add(proPublicaSenateRequest);
                                     }
 
-                                    FilterResults results = new FilterResults();
-                                    results.values = suggestionList;
-                                    results.count = suggestionList.size();
+                                    for (String s : sets[1]) {
+                                        String url = PROPUBLICA_API_BASE_URL+"members/house/"+s+"/current.json";
+                                        Log.d("PROPUBLICA SUCCESS", url);
+                                        JsonObjectRequest proPublicaSenateRequest = new JsonObjectRequest(Request.Method.GET,
+                                                url, null,
+                                                new Response.Listener<JSONObject>() {
+                                                    @Override
+                                                    public void onResponse(JSONObject response) {
+                                                        Log.d("PROPUBLICA SUCCESS", response.toString());
+                                                        congressMemberWrappers.add(new CongressMemberWrapper(response.toString()));
+                                                    }
+                                                },
+                                                new Response.ErrorListener() {
+                                                    @Override
+                                                    public void onErrorResponse(VolleyError error) {
+                                                        Log.d("VOLLEY: ","That didn't work!");
+                                                    }
+                                                }
+                                        ) {
+                                            @Override
+                                            public Map getHeaders() throws AuthFailureError {
+                                                HashMap headers = new HashMap();
+                                                headers.put("X-API-Key", "wDLaqJO9eo46ODiznW024sRPIR1LBN6PBJgABNKT");
+                                                return headers;
+                                            }
+                                        };
+                                        queue.add(proPublicaSenateRequest);
+                                    }
 
-                                    return results;
+                                    return congressMemberWrappers;
                                 }
 
                                 @Override
-                                protected void publishResults(CharSequence constraint, FilterResults results) {
-
+                                protected void onPostExecute(List<CongressMemberWrapper> congressMemberWrappers) {
+                                    Log.d("FINDRESULTS", actualAddress);
                                     if (listener != null) {
-                                        listener.onResults((List<ZipCodeWrapper>) results.values);
+                                        results = (List<CongressMemberWrapper>) congressMemberWrappers;
+                                        listener.onResults(results);
                                     }
+                                    super.onPostExecute(congressMemberWrappers);
                                 }
-                            }.filter("Location");
+                            }.execute(states, stateAndDistricts);
 
                         } catch (JSONException e) {
-                            Log.e("JSON Exception", e.toString());
+                            e.printStackTrace();
                         }
                     }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d("VOLLEY: ","That didn't work!");
-            }
-        });
-        queue.add(reverseGeocodioRequest);
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("VOLLEY: ","That didn't work!");
+                    }
+                });
+        queue.add(geocodeGeocodioRequest);
     }
 }

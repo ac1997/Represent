@@ -27,6 +27,7 @@ import com.google.android.gms.location.LocationServices;
 import java.util.List;
 
 import info.alexanderchen.represent.adapter.SearchResultsListAdapter;
+import info.alexanderchen.represent.data.CongressMemberWrapper;
 import info.alexanderchen.represent.data.DataHelper;
 import info.alexanderchen.represent.data.ZipCodeSuggestion;
 import info.alexanderchen.represent.data.ZipCodeWrapper;
@@ -137,7 +138,7 @@ public class HomepageActivity extends AppCompatActivity {
                         new DataHelper.OnFindResultsListener() {
 
                             @Override
-                            public void onResults(List<ZipCodeWrapper> results) {
+                            public void onResults(List<CongressMemberWrapper> results) {
                                 hideBackground();
                                 mSearchResultsAdapter.swapData(results);
                             }
@@ -160,7 +161,7 @@ public class HomepageActivity extends AppCompatActivity {
                 new DataHelper.OnFindResultsListener() {
 
                     @Override
-                    public void onResults(List<ZipCodeWrapper> results) {
+                    public void onResults(List<CongressMemberWrapper> results) {
                         hideBackground();
                         mSearchResultsAdapter.swapData(results);
                     }
@@ -215,7 +216,7 @@ public class HomepageActivity extends AppCompatActivity {
                         new DataHelper.OnFindResultsListener() {
 
                             @Override
-                            public void onResults(List<ZipCodeWrapper> results) {
+                            public void onResults(List<CongressMemberWrapper> results) {
                                 hideBackground();
                                 mSearchResultsAdapter.swapData(results);
                             }
