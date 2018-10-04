@@ -65,7 +65,10 @@
             android:layout_height="match_parent"
             android:layout_weight="5"
             android:orientation="vertical"
-            android:padding="10dp">
+            android:paddingBottom="10dp"
+            android:paddingEnd="15dp"
+            android:paddingStart="15dp"
+            android:paddingTop="10dp">
 
             <TextView
                 android:id="@+id/member_name"
@@ -73,8 +76,9 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="@android:style/TextAppearance.Medium"
                 android:textColor="@color/black"
+                android:textSize="20sp"
                 android:textStyle="bold"
-                tools:text="Kelly Trent" />
+                tools:text="Member Name" />
 
             <TextView
                 android:id="@+id/member_basic_desc"
@@ -83,7 +87,7 @@
                 android:textAppearance="@android:style/TextAppearance.Medium"
                 android:textColor="#8f8f8f"
                 android:textSize="14sp"
-                tools:text="Democratic | Senator 2nd Class" />
+                tools:text="Member | Description" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -92,24 +96,24 @@
 
                 <Button
                     android:id="@+id/button_email"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
                     android:layout_gravity="center"
                     android:background="@drawable/round_button_email"
                     android:gravity="center_vertical|center_horizontal"
                     android:text="&#xf0e0;"
                     android:textColor="#fff"
-                    android:textSize="22sp" />
+                    android:textSize="21sp" />
 
                 <Button
                     android:id="@+id/button_website"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
                     android:layout_gravity="center"
                     android:layout_marginLeft="10dp"
-                    android:background="@drawable/round_button_email"
+                    android:background="@drawable/round_button_website"
                     android:gravity="center_vertical|center_horizontal"
-                    android:text="&#xf0e0;"
+                    android:text="&#xf57d;"
                     android:textColor="#fff"
                     android:textSize="22sp" />
 

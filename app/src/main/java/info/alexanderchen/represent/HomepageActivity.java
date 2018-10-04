@@ -3,6 +3,7 @@ package info.alexanderchen.represent;
 import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -24,6 +25,7 @@ import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import info.alexanderchen.represent.adapter.SearchResultsListAdapter;
@@ -54,6 +56,10 @@ public class HomepageActivity extends AppCompatActivity {
     private RecyclerView mSearchResultsList;
     private SearchResultsListAdapter mSearchResultsAdapter;
 
+    private final String SAVED_RECYCLER_VIEW_STATUS_ID = "recycler_view_status";
+    private final String SAVED_RECYCLER_VIEW_DATASET_ID = "recycler_view_dataset";
+    private static Bundle mBundleRecyclerViewState;
+
     private boolean mSuggestionClicked = false;
 
     private String mLastQuery = "";
@@ -83,6 +89,27 @@ public class HomepageActivity extends AppCompatActivity {
 
         setupFloatingSearch();
         setupResultsList();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        mBundleRecyclerViewState = new Bundle();
+        Parcelable listState = mSearchResultsList.getLayoutManager().onSaveInstanceState();
+        mBundleRecyclerViewState.putParcelable(SAVED_RECYCLER_VIEW_STATUS_ID, listState);
+        mBundleRecyclerViewState.putParcelableArrayList(SAVED_RECYCLER_VIEW_DATASET_ID, mSearchResultsAdapter.getmDataSet());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (mBundleRecyclerViewState != null) {
+            Parcelable listState = mBundleRecyclerViewState.getParcelable(SAVED_RECYCLER_VIEW_STATUS_ID);
+            mSearchResultsAdapter.setmDataSet(mBundleRecyclerViewState.getParcelableArrayList(SAVED_RECYCLER_VIEW_DATASET_ID));
+            mSearchResultsList.getLayoutManager().onRestoreInstanceState(listState);
+        }
     }
 
     private void setupFloatingSearch() {

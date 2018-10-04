@@ -71,12 +71,6 @@
         android:layout_height="match_parent"
         android:layout_marginTop="50dp">
 
-        <View
-            android:id="@+id/view2"
-            android:layout_width="match_parent"
-            android:layout_height="58dp"
-            android:background="@color/colorPrimary" />
-
         <android.support.v7.widget.RecyclerView
             android:id="@+id/search_results_list"
             android:layout_width="match_parent"
@@ -85,6 +79,12 @@
             android:paddingTop="60dp">
 
         </android.support.v7.widget.RecyclerView>
+
+        <View
+            android:id="@+id/view2"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:background="@color/colorPrimary" />
 
         <com.arlib.floatingsearchview.FloatingSearchView
             android:id="@+id/floating_search_view"

@@ -1,31 +1,26 @@
 package info.alexanderchen.represent.data;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
-import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.Filter;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.gson.JsonObject;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,10 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
-
-import info.alexanderchen.represent.HomepageActivity;
 
 public class DataHelper {
     private static final String CURRENT_LOCATION = "Current Location";
@@ -51,39 +43,35 @@ public class DataHelper {
     private static final String PROPUBLICA_API_KEY = "wDLaqJO9eo46ODiznW024sRPIR1LBN6PBJgABNKT";
 
     private static List<Pair<Integer, Integer>> sValidZipCodes = new ArrayList<>(Arrays.asList(
-            new Pair<>(99501, 99950), new Pair<>(35004, 36925),
-            new Pair<>(71601, 72959), new Pair<>(75502, 75502),
-            new Pair<>(85001, 86556), new Pair<>(90001, 96162),
-            new Pair<>(80001, 81658), new Pair<>(6001, 6389),
-            new Pair<>(6401, 6928), new Pair<>(20001, 20039),
-            new Pair<>(20042, 20599), new Pair<>(20799, 20799),
-            new Pair<>(19701, 19980), new Pair<>(32004, 34997),
-            new Pair<>(30001, 31999), new Pair<>(39901, 39901),
-            new Pair<>(96701, 96898), new Pair<>(50001, 52809),
-            new Pair<>(68119, 68120), new Pair<>(83201, 83876),
-            new Pair<>(60001, 62999), new Pair<>(46001, 47997),
-            new Pair<>(66002, 67954), new Pair<>(40003, 42788),
-            new Pair<>(70001, 71232), new Pair<>(71234, 71497),
-            new Pair<>(1001, 2791), new Pair<>(5501, 5544),
-            new Pair<>(20331, 20331), new Pair<>(20335, 20797),
-            new Pair<>(20812, 21930), new Pair<>(3901, 4992),
-            new Pair<>(48001, 49971), new Pair<>(55001, 56763),
-            new Pair<>(63001, 65899), new Pair<>(38601, 39776),
-            new Pair<>(71233, 71233), new Pair<>(59001, 59937),
-            new Pair<>(27006, 28909), new Pair<>(58001, 58856),
-            new Pair<>(68001, 69367), new Pair<>(3031, 3897), 
-            new Pair<>(7001, 8989), new Pair<>(87001, 88441), 
-            new Pair<>(88901, 89883), new Pair<>(6390, 6390), 
-            new Pair<>(10001, 14975), new Pair<>(43001, 45999),
-            new Pair<>(73401, 74966), new Pair<>(97001, 97920),
-            new Pair<>(15001, 19640), new Pair<>(2801, 2940),
-            new Pair<>(29001, 29948), new Pair<>(57001, 57799),
-            new Pair<>(37010, 38589), new Pair<>(73301, 73301),
-            new Pair<>(75001, 75501), new Pair<>(75503, 79999),
-            new Pair<>(88510, 88589), new Pair<>(84001, 84784),
-            new Pair<>(22001, 24658), new Pair<>(5601, 5907),
-            new Pair<>(98001, 99403), new Pair<>(53001, 54990),
-            new Pair<>(24701, 26886), new Pair<>(82001, 83128)));
+            new Pair<>(35801, 35816), new Pair<>(99501, 99524),
+            new Pair<>(85001, 85055), new Pair<>(72201, 72217),
+            new Pair<>(94203, 94209), new Pair<>(90001, 90089),
+            new Pair<>(90209, 90213), new Pair<>(80201, 80239),
+            new Pair<>(6101, 6112), new Pair<>(19901, 19905),
+            new Pair<>(20001, 20020), new Pair<>(32501, 32509),
+            new Pair<>(33124, 33190), new Pair<>(32801, 32837),
+            new Pair<>(30301, 30381), new Pair<>(96801, 96830),
+            new Pair<>(83254, 83254), new Pair<>(60601, 60641),
+            new Pair<>(62701, 62709), new Pair<>(46201, 46209),
+            new Pair<>(52801, 52809), new Pair<>(50301, 50323),
+            new Pair<>(67201, 67221), new Pair<>(41701, 41702),
+            new Pair<>(70112, 70119), new Pair<>(4032, 4034),
+            new Pair<>(21201, 21237), new Pair<>(2101, 2137),
+            new Pair<>(49036, 49036), new Pair<>(49734, 49735),
+            new Pair<>(55801, 55808), new Pair<>(39530, 39535),
+            new Pair<>(63101, 63141), new Pair<>(59044, 59044),
+            new Pair<>(68901, 68902), new Pair<>(89501, 89513),
+            new Pair<>(3217, 3217), new Pair<>(7039, 7039),
+            new Pair<>(87500, 87506), new Pair<>(10001, 10048),
+            new Pair<>(27565, 27565), new Pair<>(58282, 58282),
+            new Pair<>(44101, 44179), new Pair<>(74101, 74110),
+            new Pair<>(97201, 97225), new Pair<>(15201, 15244),
+            new Pair<>(2840, 2841), new Pair<>(29020, 29020),
+            new Pair<>(57401, 57402), new Pair<>(37201, 37222),
+            new Pair<>(78701, 78705), new Pair<>(84321, 84323),
+            new Pair<>(5751, 5751), new Pair<>(24517, 24517),
+            new Pair<>(98004, 98009), new Pair<>(25813, 25813),
+            new Pair<>(53201, 53228), new Pair<>(82941, 82941)));
     private static String actualAddress;
     private static List<String> congressionalDistricts = new ArrayList<>();
 
@@ -92,7 +80,7 @@ public class DataHelper {
                     new ZipCodeSuggestion(CURRENT_LOCATION),
                     new ZipCodeSuggestion(RANDOM_LOCATION)));
 
-    private static List<CongressMemberWrapper> results = new ArrayList<>();
+    private static List<CongressMemberWrapper> congressMemberWrappers = new ArrayList<>();
 
     public interface OnFindResultsListener {
         void onResults(List<CongressMemberWrapper> results);
@@ -186,85 +174,70 @@ public class DataHelper {
 
 
     public static void findResults(final Context context, String query, final RequestQueue queue, FusedLocationProviderClient fusedLocationClient, final OnFindResultsListener listener) {
-//        String url = "https://api.geocod.io/v1.3/geocode?q=1109+N+Highland+St%2c+Arlington+VA&fields=cd,stateleg&api_key=151b1577336556aec761babcbb5b11616b3ba0c";
-//
-////         Request a string response from the provided URL.
-//        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-//                new Response.Listener<String>() {
-//                    @Override
-//                    public void onResponse(String response) {
-//                        // Display the first 500 characters of the response string.
-//                        Log.d("VOLLEY: ","Response is: "+ response.substring(0,500));
-//                    }
-//                }, new Response.ErrorListener() {
-//            @Override
-//            public void onErrorResponse(VolleyError error) {
-//                Log.d("VOLLEY: ","That didn't work!"+query);
-//            }
-//        });
-//
-////         Add the request to the RequestQueue.
-//        queue.add(stringRequest);
         Log.d("VOLLEY: ",query);
-        if (query.equals(CURRENT_LOCATION)) {
-            fusedLocationClient.getLastLocation()
-                    .addOnSuccessListener((Activity) context, new OnSuccessListener<Location>() {
-                        @Override
-                        public void onSuccess(Location location) {
-                            if (location != null) {
-                                double latitude = location.getLatitude();
-                                double longitude = location.getLongitude();
-                                String latLong =  Double.toString(latitude) + "," + Double.toString(longitude);
+        switch (query) {
+            case CURRENT_LOCATION:
+                fusedLocationClient.getLastLocation()
+                        .addOnSuccessListener((Activity) context, new OnSuccessListener<Location>() {
+                            @Override
+                            public void onSuccess(Location location) {
+                                if (location != null) {
+                                    double latitude = location.getLatitude();
+                                    double longitude = location.getLongitude();
+                                    String latLong = Double.toString(latitude) + "," + Double.toString(longitude);
 
-                                String url = GEOCODIO_API_BASE_URL+"reverse?q="+latLong+GEOCODIO_API_KEY;
+                                    String url = GEOCODIO_API_BASE_URL + "reverse?q=" + latLong + GEOCODIO_API_KEY;
 
-                                JsonObjectRequest reverseGeocodioRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-                                        new Response.Listener<JSONObject>() {
-                                            @Override
-                                            public void onResponse(JSONObject response) {
-                                                try {
-                                                    JSONArray array = response.getJSONArray("results");
-                                                    actualAddress = array.getJSONObject(0).getString("formatted_address");
-                                                    Log.d("VOLLEY: ","Response is: "+ actualAddress);
-                                                    requestResults(context, queue, listener);
-                                                } catch (JSONException e) {
-                                                    Log.e("JSON Exception", e.toString());
+                                    JsonObjectRequest reverseGeocodioRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+                                            new Response.Listener<JSONObject>() {
+                                                @Override
+                                                public void onResponse(JSONObject response) {
+                                                    try {
+                                                        JSONArray array = response.getJSONArray("results");
+                                                        actualAddress = array.getJSONObject(0).getString("formatted_address");
+                                                        Log.d("VOLLEY: ", "Response is: " + actualAddress);
+                                                        requestResults(context, queue, listener);
+                                                    } catch (JSONException e) {
+                                                        Log.e("JSON Exception", e.toString());
+                                                    }
                                                 }
-                                            }
-                                        },
-                                        new Response.ErrorListener() {
-                                            @Override
-                                            public void onErrorResponse(VolleyError error) {
-                                                Log.d("VOLLEY: ","That didn't work!");
-                                            }
-                                        });
-                                queue.add(reverseGeocodioRequest);
-                            } else {
-                                Log.d("Current Location:3", "NULL DETECTED");
+                                            },
+                                            new Response.ErrorListener() {
+                                                @Override
+                                                public void onErrorResponse(VolleyError error) {
+                                                    Log.e("VOLLEY: ", "That didn't work!");
+                                                }
+                                            });
+                                    queue.add(reverseGeocodioRequest);
+                                } else {
+                                    Log.e("Location Service", "Returned null");
+                                }
                             }
-                        }
-                    });
-        } else if (query.equals(RANDOM_LOCATION)) {
-            Pair<Integer, Integer> pair = sValidZipCodes.get(ThreadLocalRandom.current().nextInt(0, sValidZipCodes.size()));
-            actualAddress = Integer.toString(ThreadLocalRandom.current().nextInt(pair.first, pair.second+1));
-            requestResults(context, queue, listener);
-
-
-            Log.d("FINDRESULTS", "Random Location");
-        } else {
-            query = query.trim();
-            if (query.length() != 5 || !query.matches("[0-9]+")) {
-                Toast.makeText(context, "Invalid Zip Code Entered", Toast.LENGTH_LONG).show();
-                return;
-            } else {
-                actualAddress = query;
+                        });
+                break;
+            case RANDOM_LOCATION:
+                Pair<Integer, Integer> pair = sValidZipCodes.get(ThreadLocalRandom.current().nextInt(0, sValidZipCodes.size()));
+                Log.d("RANDOM LOCATION", pair.toString());
+                actualAddress = Integer.toString(ThreadLocalRandom.current().nextInt(pair.first, pair.second + 1));
                 requestResults(context, queue, listener);
-            }
+
+
+                Log.d("RANDOM LOCATION", actualAddress);
+                break;
+            default:
+                query = query.trim();
+                if (query.length() != 5 || !query.matches("[0-9]+")) {
+                    Toast.makeText(context, "Invalid Zip Code Entered", Toast.LENGTH_LONG).show();
+                } else {
+                    actualAddress = query;
+                    requestResults(context, queue, listener);
+                }
+                break;
         }
     }
 
     public static void requestResults(Context context, final RequestQueue queue, final OnFindResultsListener listener) {
-        results.clear();
+        congressMemberWrappers.clear();
         congressionalDistricts.clear();
         String geocodioUrl = GEOCODIO_API_BASE_URL+"geocode?q="+actualAddress+"&fields=cd115"+GEOCODIO_API_KEY;
 
@@ -287,92 +260,66 @@ public class DataHelper {
                                 JSONArray districtsArray = result.getJSONObject("fields").getJSONArray("congressional_districts");
 
                                 for (int j = 0; j < districtsArray.length(); j++) {
-                                    String districtNumber = districtsArray.getJSONObject(i).getString("district_number");
+                                    String districtNumber = districtsArray.getJSONObject(j).getString("district_number");
                                     if(districtNumber.equals("0"))
                                         districtNumber = "1";
                                     stateAndDistricts.add(state+"/"+districtNumber);
                                 }
                             }
 
-                            new AsyncTask<Set<String>, Integer, List<CongressMemberWrapper>>() {
-                                @Override
-                                protected List<CongressMemberWrapper> doInBackground(Set<String>... sets) {
-//                                    String proPublicaSenateUrl = PROPUBLICA_API_BASE_URL+"/members/senate/"+s+"/current.json";
-//                                    String proPublicaRepresentativeUrl = PROPUBLICA_API_BASE_URL+"/members/house/"+s+"/current.json";
-                                    final List<CongressMemberWrapper> congressMemberWrappers = new ArrayList<>();
-
-                                    for (String s : sets[0]) {
-                                        String url = PROPUBLICA_API_BASE_URL+"members/senate/"+s+"/current.json";
-                                        Log.d("PROPUBLICA SUCCESS", url);
-                                        JsonObjectRequest proPublicaSenateRequest = new JsonObjectRequest(Request.Method.GET,
-                                                url, null,
-                                                new Response.Listener<JSONObject>() {
-                                                    @Override
-                                                    public void onResponse(JSONObject response) {
-                                                        Log.d("PROPUBLICA SUCCESS", response.toString());
-                                                        congressMemberWrappers.add(new CongressMemberWrapper(response.toString()));
-                                                    }
-                                                },
-                                                new Response.ErrorListener() {
-                                                    @Override
-                                                    public void onErrorResponse(VolleyError error) {
-                                                        Log.d("VOLLEY: ","That didn't work!");
-                                                    }
-                                                }
-                                        ) {
+                            for (String s : states) {
+                                String url = PROPUBLICA_API_BASE_URL+"members/senate/"+s+"/current.json";
+                                JsonObjectRequest proPublicaSenateRequest = new JsonObjectRequest(Request.Method.GET,
+                                        url, null,
+                                        new Response.Listener<JSONObject>() {
                                             @Override
-                                            public Map getHeaders() throws AuthFailureError {
-                                                HashMap headers = new HashMap();
-                                                headers.put("X-API-Key", "wDLaqJO9eo46ODiznW024sRPIR1LBN6PBJgABNKT");
-                                                return headers;
+                                            public void onResponse(JSONObject response) {
+                                                requestMemberDetails(response, queue, listener);
                                             }
-                                        };
-                                        queue.add(proPublicaSenateRequest);
-                                    }
-
-                                    for (String s : sets[1]) {
-                                        String url = PROPUBLICA_API_BASE_URL+"members/house/"+s+"/current.json";
-                                        Log.d("PROPUBLICA SUCCESS", url);
-                                        JsonObjectRequest proPublicaSenateRequest = new JsonObjectRequest(Request.Method.GET,
-                                                url, null,
-                                                new Response.Listener<JSONObject>() {
-                                                    @Override
-                                                    public void onResponse(JSONObject response) {
-                                                        Log.d("PROPUBLICA SUCCESS", response.toString());
-                                                        congressMemberWrappers.add(new CongressMemberWrapper(response.toString()));
-                                                    }
-                                                },
-                                                new Response.ErrorListener() {
-                                                    @Override
-                                                    public void onErrorResponse(VolleyError error) {
-                                                        Log.d("VOLLEY: ","That didn't work!");
-                                                    }
-                                                }
-                                        ) {
+                                        },
+                                        new Response.ErrorListener() {
                                             @Override
-                                            public Map getHeaders() throws AuthFailureError {
-                                                HashMap headers = new HashMap();
-                                                headers.put("X-API-Key", "wDLaqJO9eo46ODiznW024sRPIR1LBN6PBJgABNKT");
-                                                return headers;
+                                            public void onErrorResponse(VolleyError error) {
+                                                Log.d("VOLLEY: ","That didn't work!");
                                             }
-                                        };
-                                        queue.add(proPublicaSenateRequest);
+                                        }
+                                ) {
+                                    @Override
+                                    public Map getHeaders() {
+                                        HashMap headers = new HashMap();
+                                        headers.put("X-API-Key", "wDLaqJO9eo46ODiznW024sRPIR1LBN6PBJgABNKT");
+                                        return headers;
                                     }
+                                };
+                                queue.add(proPublicaSenateRequest);
+                            }
 
-                                    return congressMemberWrappers;
-                                }
-
-                                @Override
-                                protected void onPostExecute(List<CongressMemberWrapper> congressMemberWrappers) {
-                                    Log.d("FINDRESULTS", actualAddress);
-                                    if (listener != null) {
-                                        results = (List<CongressMemberWrapper>) congressMemberWrappers;
-                                        listener.onResults(results);
+                            for (String s : stateAndDistricts) {
+                                String url = PROPUBLICA_API_BASE_URL+"members/house/"+s+"/current.json";
+                                JsonObjectRequest proPublicaSenateRequest = new JsonObjectRequest(Request.Method.GET,
+                                        url, null,
+                                        new Response.Listener<JSONObject>() {
+                                            @Override
+                                            public void onResponse(JSONObject response) {
+                                                requestMemberDetails(response, queue, listener);
+                                            }
+                                        },
+                                        new Response.ErrorListener() {
+                                            @Override
+                                            public void onErrorResponse(VolleyError error) {
+                                                Log.d("VOLLEY: ","That didn't work!");
+                                            }
+                                        }
+                                ) {
+                                    @Override
+                                    public Map getHeaders() {
+                                        HashMap headers = new HashMap();
+                                        headers.put("X-API-Key", "wDLaqJO9eo46ODiznW024sRPIR1LBN6PBJgABNKT");
+                                        return headers;
                                     }
-                                    super.onPostExecute(congressMemberWrappers);
-                                }
-                            }.execute(states, stateAndDistricts);
-
+                                };
+                                queue.add(proPublicaSenateRequest);
+                            }
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -385,5 +332,97 @@ public class DataHelper {
                     }
                 });
         queue.add(geocodeGeocodioRequest);
+    }
+
+    public static void requestMemberDetails(JSONObject jsonObj, final RequestQueue queue, final OnFindResultsListener listener) {
+        try {
+            JSONArray resultsArr = jsonObj.getJSONArray("results");
+            for (int i = 0; i < resultsArr.length(); i++) {
+                final String fullName = resultsArr.getJSONObject(i).getString("name");
+                final String url = resultsArr.getJSONObject(i).getString("api_uri");
+
+                JsonObjectRequest proPublicaSenateRequest = new JsonObjectRequest(Request.Method.GET,
+                        url, null,
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                Log.d("PROPUBLICA SUCCESS 1", response.toString());
+                                parseCongressMemberJSON(response, fullName, url, listener);
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                Log.d("VOLLEY: ","That didn't work!");
+                            }
+                        }
+                ) {
+                    @Override
+                    public Map getHeaders() {
+                        HashMap headers = new HashMap();
+                        headers.put("X-API-Key", "wDLaqJO9eo46ODiznW024sRPIR1LBN6PBJgABNKT");
+                        return headers;
+                    }
+                };
+                queue.add(proPublicaSenateRequest);
+
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void parseCongressMemberJSON(JSONObject jsonObj, String fullName, String api_uri, final OnFindResultsListener listener) {
+        try {
+            JSONObject result = jsonObj.getJSONArray("results").getJSONObject(0);
+
+            CongressMemberWrapper congressMemberWrapper = new CongressMemberWrapper(result.getString("member_id"),
+                    fullName, result.getString("url"), result.getString("twitter_account"),
+                    result.getString("facebook_account"), result.getString("youtube_account"), api_uri);
+
+            result = result.getJSONArray("roles").getJSONObject(0);
+
+            if (result.getString("short_title").equals("Sen.")) {
+                congressMemberWrapper.roleSectionUpdates(result.getString("chamber"), result.getString("title"), result.getString("party"),
+                        result.getString("state"), result.getString("start_date"),
+                        result.getString("end_date"), result.getString("office"), result.getString("phone"),
+                        result.getString("contact_form"));
+            } else {
+                congressMemberWrapper.roleSectionUpdates(result.getString("chamber"), result.getString("title"), result.getString("party"),
+                        result.getString("state"), result.getString("district"), result.getString("start_date"),
+                        result.getString("end_date"), result.getString("office"), result.getString("phone"),
+                        result.getString("contact_form"));
+            }
+
+
+            List<CommitteeWrapper> committeeWrappers = new ArrayList<>();
+            JSONArray committees = result.getJSONArray("committees");
+            for (int i = 0; i < committees.length(); i++) {
+                JSONObject committee = committees.getJSONObject(i);
+                committeeWrappers.add(new CommitteeWrapper(committee.getString("name"),
+                        committee.getString("code"), committee.getString("side"), committee.getString("title"),
+                        committee.getString("end_date"), committee.getString("api_uri")));
+            }
+            congressMemberWrapper.setCommittees(committeeWrappers);
+
+            List<SubCommitteeWrapper> subCommitteeWrappers = new ArrayList<>();
+            JSONArray subCommittees = result.getJSONArray("subcommittees");
+            for (int i = 0; i < subCommittees.length(); i++) {
+                JSONObject subCommittee = subCommittees.getJSONObject(i);
+                subCommitteeWrappers.add(new SubCommitteeWrapper(subCommittee.getString("name"),
+                        subCommittee.getString("code"), subCommittee.getString("parent_committee_id"),
+                        subCommittee.getString("side"), subCommittee.getString("title"),
+                        subCommittee.getString("end_date"), subCommittee.getString("api_uri")));
+            }
+            congressMemberWrapper.setSubCommittees(subCommitteeWrappers);
+            Log.e("MEMBERS", congressMemberWrapper.toString());
+            congressMemberWrappers.add(congressMemberWrapper);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        if (listener != null) {
+            listener.onResults(congressMemberWrappers);
+        }
     }
 }
