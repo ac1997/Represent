@@ -218,7 +218,7 @@ public class DataHelper {
                                                     JSONArray array = jsonObj.getJSONArray("results");
                                                     actualAddress = array.getJSONObject(0).getString("formatted_address");
                                                     Log.d("VOLLEY: ","Response is: "+ actualAddress);
-                                                    getCongressionalDistricts(context, queue);
+                                                    requestResults(context, queue, listener);
                                                 } catch (JSONException e) {
                                                     Log.e("JSON Exception", e.toString());
                                                 }
@@ -238,7 +238,7 @@ public class DataHelper {
         } else if (query.equals(RANDOM_LOCATION)) {
             Pair<Integer, Integer> pair = sValidZipCodes.get(ThreadLocalRandom.current().nextInt(0, sValidZipCodes.size()));
             actualAddress = Integer.toString(ThreadLocalRandom.current().nextInt(pair.first, pair.second+1));
-            getCongressionalDistricts(context, queue);
+            requestResults(context, queue, listener);
 
 
             Log.d("FINDRESULTS", "Random Location");
@@ -249,11 +249,9 @@ public class DataHelper {
                 return;
             } else {
                 actualAddress = query;
-                getCongressionalDistricts(context, queue);
+                requestResults(context, queue, listener);
             }
         }
-
-        requestResults(context, query, queue, listener);
     }
 
     private static void getCongressionalDistricts(Context context, RequestQueue queue) {
@@ -290,45 +288,77 @@ public class DataHelper {
         queue.add(reverseGeocodioRequest);
     }
 
-    public static void requestResults(Context context, String query, RequestQueue queue, final OnFindResultsListener listener) {
-        sZipCodeWrappers.clear();
-        sZipCodeWrappers.add(new ZipCodeWrapper(CURRENT_LOCATION));
-        sZipCodeWrappers.add(new ZipCodeWrapper(RANDOM_LOCATION));
-        Log.d("FINDRESULTS", query);
-        new Filter() {
-            @Override
-            protected FilterResults performFiltering(CharSequence constraint) {
+    public static void requestResults(Context context, RequestQueue queue, final OnFindResultsListener listener) {
+        congressionalDistricts.clear();
+        String url = GEOCODIO_API_BASE_URL+"geocode?q="+actualAddress+"&fields=cd115"+GEOCODIO_API_KEY;
+
+        StringRequest reverseGeocodioRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            JSONObject jsonObj = new JSONObject(response);
+
+                            String state = jsonObj.getJSONArray("results").getJSONObject(0).getJSONObject("address_components").getString("state");
+
+                            Log.d("VOLLEY: ","State is: "+ state);
+
+                            JSONArray array = jsonObj.getJSONArray("results").getJSONObject(0).getJSONObject("fields").getJSONArray("congressional_districts");
+                            for(int i = 0 ; i < array.length() ; i++){
+                                congressionalDistricts.add(state + " " + array.getJSONObject(i).getString("district_number"));
+                                Log.d("VOLLEY LOOP: ","Congressional District is: "+ congressionalDistricts.get(i));
+                            }
+
+                            sZipCodeWrappers.clear();
+                            sZipCodeWrappers.add(new ZipCodeWrapper(CURRENT_LOCATION));
+                            sZipCodeWrappers.add(new ZipCodeWrapper(RANDOM_LOCATION));
+                            Log.d("FINDRESULTS", actualAddress);
+                            new Filter() {
+                                @Override
+                                protected FilterResults performFiltering(CharSequence constraint) {
 
 
-                List<ZipCodeWrapper> suggestionList = new ArrayList<>();
+                                    List<ZipCodeWrapper> suggestionList = new ArrayList<>();
 
-                if (!(constraint == null || constraint.length() == 0)) {
+                                    if (!(constraint == null || constraint.length() == 0)) {
 
-                    for (ZipCodeWrapper zipCode : sZipCodeWrappers) {
-                        if (zipCode.getZipCode().toUpperCase()
-                                .startsWith(constraint.toString().toUpperCase()) || zipCode.getZipCode().toUpperCase()
-                                .equals(CURRENT_LOCATION.toUpperCase()) || zipCode.getZipCode().toUpperCase()
-                                .equals(RANDOM_LOCATION.toUpperCase())) {
-                            suggestionList.add(zipCode);
+                                        for (ZipCodeWrapper zipCode : sZipCodeWrappers) {
+                                            if (zipCode.getZipCode().toUpperCase()
+                                                    .startsWith(constraint.toString().toUpperCase()) || zipCode.getZipCode().toUpperCase()
+                                                    .equals(CURRENT_LOCATION.toUpperCase()) || zipCode.getZipCode().toUpperCase()
+                                                    .equals(RANDOM_LOCATION.toUpperCase())) {
+                                                suggestionList.add(zipCode);
+                                            }
+                                        }
+
+                                    }
+
+                                    FilterResults results = new FilterResults();
+                                    results.values = suggestionList;
+                                    results.count = suggestionList.size();
+
+                                    return results;
+                                }
+
+                                @Override
+                                protected void publishResults(CharSequence constraint, FilterResults results) {
+
+                                    if (listener != null) {
+                                        listener.onResults((List<ZipCodeWrapper>) results.values);
+                                    }
+                                }
+                            }.filter("Location");
+
+                        } catch (JSONException e) {
+                            Log.e("JSON Exception", e.toString());
                         }
                     }
-
-                }
-
-                FilterResults results = new FilterResults();
-                results.values = suggestionList;
-                results.count = suggestionList.size();
-
-                return results;
-            }
-
+                }, new Response.ErrorListener() {
             @Override
-            protected void publishResults(CharSequence constraint, FilterResults results) {
-
-                if (listener != null) {
-                    listener.onResults((List<ZipCodeWrapper>) results.values);
-                }
+            public void onErrorResponse(VolleyError error) {
+                Log.d("VOLLEY: ","That didn't work!");
             }
-        }.filter(query);
+        });
+        queue.add(reverseGeocodioRequest);
     }
 }

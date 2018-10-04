@@ -1,12 +1,8 @@
 package info.alexanderchen.represent;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.Location;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -17,21 +13,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.SearchSuggestionsAdapter;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.util.List;
 
@@ -39,6 +30,7 @@ import info.alexanderchen.represent.adapter.SearchResultsListAdapter;
 import info.alexanderchen.represent.data.DataHelper;
 import info.alexanderchen.represent.data.ZipCodeSuggestion;
 import info.alexanderchen.represent.data.ZipCodeWrapper;
+import info.alexanderchen.represent.decoration.InsetDividerItemDecoration;
 
 public class HomepageActivity extends AppCompatActivity {
 
@@ -212,40 +204,25 @@ public class HomepageActivity extends AppCompatActivity {
             @Override
             public void onActionMenuItemSelected(MenuItem item) {
 
-                if (item.getItemId() == R.id.action_location) {
+                if (item.getItemId() == R.id.action_location)
                     mLastQuery = CURRENT_LOCATION;
-                    Log.d(TAG, "onSearchAction() query: " + CURRENT_LOCATION);
-
-                    DataHelper.findResults(HomepageActivity.this, CURRENT_LOCATION, queue, mFusedLocationClient,
-                            new DataHelper.OnFindResultsListener() {
-
-                                @Override
-                                public void onResults(List<ZipCodeWrapper> results) {
-                                    hideBackground();
-                                    mSearchResultsAdapter.swapData(results);
-                                }
-
-                            });
-                    mSuggestionClicked = true;
-                    mSearchView.setSearchText(mLastQuery);
-                } else if (item.getItemId() == R.id.action_random) {
+                else if (item.getItemId() == R.id.action_random)
                     mLastQuery = RANDOM_LOCATION;
-                    Log.d(TAG, "onSearchAction() query: " + RANDOM_LOCATION);
 
-                    DataHelper.findResults(HomepageActivity.this, RANDOM_LOCATION, queue, mFusedLocationClient,
-                            new DataHelper.OnFindResultsListener() {
+                Log.d(TAG, "onSearchAction() query: " + mLastQuery);
 
-                                @Override
-                                public void onResults(List<ZipCodeWrapper> results) {
-                                    hideBackground();
-                                    mSearchResultsAdapter.swapData(results);
-                                }
+                DataHelper.findResults(HomepageActivity.this, mLastQuery, queue, mFusedLocationClient,
+                        new DataHelper.OnFindResultsListener() {
 
-                            });
-                    mSuggestionClicked = true;
-                    mSearchView.setSearchText(mLastQuery);
-                }
+                            @Override
+                            public void onResults(List<ZipCodeWrapper> results) {
+                                hideBackground();
+                                mSearchResultsAdapter.swapData(results);
+                            }
 
+                        });
+                mSuggestionClicked = true;
+                mSearchView.setSearchText(mLastQuery);
             }
         });
 
@@ -334,6 +311,9 @@ public class HomepageActivity extends AppCompatActivity {
         mSearchResultsAdapter = new SearchResultsListAdapter();
         mSearchResultsList.setAdapter(mSearchResultsAdapter);
         mSearchResultsList.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+        mSearchResultsList.addItemDecoration(new InsetDividerItemDecoration(
+                getApplicationContext()
+        ));
     }
 
     @Override
@@ -350,6 +330,9 @@ public class HomepageActivity extends AppCompatActivity {
     }
 
     private void hideBackground() {
+        RelativeLayout rLayout = (RelativeLayout) findViewById(R.id.main_relative_layout);
+        rLayout.setBackgroundColor(Color.WHITE);
+
         mCogressImageView.setVisibility(View.GONE);
         mNoDataTitleTextView.setVisibility(View.GONE);
         mNoDataDetailTextView.setVisibility(View.GONE);
