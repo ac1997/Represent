@@ -8,18 +8,19 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 
 import info.alexanderchen.represent.data.CongressMemberWrapper;
 import info.alexanderchen.represent.fragment.ProfileTab;
 
-public class ProfileActivity extends AppCompatActivity {
+public class DetailPageActivity extends AppCompatActivity {
 
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
@@ -29,20 +30,22 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_profile);
-
         congressMemberWrapper = getIntent().getExtras().getParcelable("congressMemberWrapper");
-        Log.e("INTENT RECIEVED", congressMemberWrapper.getName());
+        setContentView(R.layout.activity_profile);
 
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager = findViewById(R.id.viewPagerContainer);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
         TabLayout tabLayout = findViewById(R.id.tabs);
-
         mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
 
+        TextView textViewBackButton = findViewById(R.id.textViewBackButton);
+        if(congressMemberWrapper.getDistrict().equals(""))
+            textViewBackButton.setText(congressMemberWrapper.getState());
+        else
+            textViewBackButton.setText(congressMemberWrapper.getState() + "-" + congressMemberWrapper.getDistrict());
         ConstraintLayout backContainer = findViewById(R.id.backContainer);
         backContainer.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -50,6 +53,33 @@ public class ProfileActivity extends AppCompatActivity {
                 onBackPressed();
             }
         });
+
+        ImageView imageViewProfileImage = findViewById(R.id.imageViewProfileMemberImage);
+        ImageView imageViewPartyLogo = findViewById(R.id.imageViewProfilePartyLogo);
+        RequestOptions requestOptions = new RequestOptions().placeholder(R.drawable.no_profile_img).centerCrop();
+        Glide.with(this).setDefaultRequestOptions(requestOptions).load(congressMemberWrapper.getImageURL()).into(imageViewProfileImage);
+
+        switch (congressMemberWrapper.getParty()) {
+            case "Democratic":
+                imageViewPartyLogo.setImageResource(R.drawable.democratic);
+                break;
+
+            case "Independent":
+                imageViewPartyLogo.setImageResource(R.drawable.independent);
+                break;
+
+            case "Republican":
+                imageViewPartyLogo.setImageResource(R.drawable.republican);
+        }
+
+        TextView textViewMemberName = findViewById(R.id.textViewProfileMemberName);
+        TextView textViewMemberDetail = findViewById(R.id.textViewProfileDetails);
+
+        textViewMemberName.setText(congressMemberWrapper.getName());
+        if(congressMemberWrapper.isSenator())
+            textViewMemberDetail.setText(congressMemberWrapper.getParty()+" | "+congressMemberWrapper.getShortTitle()+" | "+congressMemberWrapper.getFullState());
+        else
+            textViewMemberDetail.setText(congressMemberWrapper.getParty()+" | "+congressMemberWrapper.getShortTitle()+" | "+congressMemberWrapper.getFullState()+" | "+congressMemberWrapper.getFullDistrict());
     }
 
     @Override
@@ -75,9 +105,7 @@ public class ProfileActivity extends AppCompatActivity {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+            View rootView = inflater.inflate(R.layout.fragment_placeholder, container, false);
             return rootView;
         }
     }

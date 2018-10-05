@@ -11,7 +11,7 @@
 
         <android.support.v7.widget.Toolbar
             android:layout_width="match_parent"
-            android:layout_height="250dp"
+            android:layout_height="255dp"
             android:contentInsetEnd="0dp"
             android:contentInsetLeft="0dp"
             android:contentInsetRight="0dp"
@@ -62,7 +62,7 @@
                 </android.support.constraint.ConstraintLayout>
 
                 <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                    android:id="@+id/member_image"
+                    android:id="@+id/imageViewProfileMemberImage"
                     android:layout_width="160dp"
                     android:layout_height="160dp"
                     android:layout_marginEnd="20dp"
@@ -76,12 +76,12 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                    android:id="@+id/member_party"
+                    android:id="@+id/imageViewProfilePartyLogo"
                     android:layout_width="45dp"
                     android:layout_height="45dp"
                     android:src="@drawable/independent"
-                    app:layout_constraintBottom_toBottomOf="@+id/member_image"
-                    app:layout_constraintEnd_toEndOf="@+id/member_image" />
+                    app:layout_constraintBottom_toBottomOf="@+id/imageViewProfileMemberImage"
+                    app:layout_constraintEnd_toEndOf="@+id/imageViewProfileMemberImage" />
 
                 <TextView
                     android:id="@+id/textViewCongressNumber"
@@ -109,28 +109,28 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
-                    android:id="@+id/textView4"
+                    android:id="@+id/textViewProfileMemberName"
                     android:layout_width="wrap_content"
                     android:layout_height="30dp"
-                    android:layout_marginTop="3dp"
+                    android:layout_marginTop="5dp"
                     android:text="Kelly Trent"
                     android:textColor="@android:color/white"
-                    android:textSize="20sp"
+                    android:textSize="24sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/member_image" />
+                    app:layout_constraintTop_toBottomOf="@+id/imageViewProfileMemberImage" />
 
                 <TextView
-                    android:id="@+id/textView5"
+                    android:id="@+id/textViewProfileDetails"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Republican | Representative | Mississippi | 1st District"
                     android:textAlignment="center"
                     android:textColor="@color/dimTextColor"
-                    android:textSize="12sp"
+                    android:textSize="14sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView4" />
+                    app:layout_constraintTop_toBottomOf="@+id/textViewProfileMemberName" />
 
             </android.support.constraint.ConstraintLayout>
 

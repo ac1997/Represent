@@ -46,6 +46,13 @@ public class ProfileTab extends Fragment {
         TextView textViewStartDate = view.findViewById(R.id.textViewStartDate);
         TextView textViewEndDate = view.findViewById(R.id.textViewEndDate);
 
+        textViewTitle.setText(congressMemberWrapper.getFullTitle());
+        textViewChamber.setText(congressMemberWrapper.getFullChamber());
+        textViewOffice.setText(congressMemberWrapper.getOffice());
+        textViewPhone.setText(congressMemberWrapper.getPhone());
+        textViewStartDate.setText(congressMemberWrapper.getStart_date());
+        textViewEndDate.setText(congressMemberWrapper.getEnd_date());
+
         Button emailButton = view.findViewById(R.id.buttonEmailProfile);
         Button websiteButton = view.findViewById(R.id.buttonWebsiteProfile);
         Button twitterButton = view.findViewById(R.id.buttonTwitterProfile);
@@ -96,7 +103,7 @@ public class ProfileTab extends Fragment {
             @Override
             public void onClick(View v) {
                 if (id.equals("null"))
-                    Toast.makeText(v.getContext(), "No "+socialMedia+" found", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(v.getContext(), "Missing "+socialMedia, Toast.LENGTH_SHORT).show();
                 else
                     v.getContext().startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse(actual_url)));
             }

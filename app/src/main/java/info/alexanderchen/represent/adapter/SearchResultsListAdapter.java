@@ -2,7 +2,6 @@ package info.alexanderchen.represent.adapter;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Parcelable;
@@ -24,7 +23,7 @@ import com.bumptech.glide.request.RequestOptions;
 import java.util.ArrayList;
 import java.util.List;
 
-import info.alexanderchen.represent.ProfileActivity;
+import info.alexanderchen.represent.DetailPageActivity;
 import info.alexanderchen.represent.R;
 import info.alexanderchen.represent.Typefaces;
 import info.alexanderchen.represent.data.CongressMemberWrapper;
@@ -54,7 +53,7 @@ public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResults
 
         public ViewHolder(View view) {
             super(view);
-            mMemberPicture = view.findViewById(R.id.member_image);
+            mMemberPicture = view.findViewById(R.id.imageViewProfileMemberImage);
             mMemberParty = view.findViewById(R.id.member_party);
             mMemberName = view.findViewById(R.id.member_name);
             mMemberDesc = view.findViewById(R.id.member_basic_desc);
@@ -111,7 +110,7 @@ public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResults
         RequestOptions requestOptions = new RequestOptions().placeholder(R.drawable.no_profile_img).centerCrop();
         Glide.with(parent.getContext()).setDefaultRequestOptions(requestOptions).load(url).into(holder.mMemberPicture);
 
-        switch (congressMember.getParty()) {
+        switch (party) {
             case "Democratic":
                 holder.mMemberParty.setImageResource(R.drawable.democratic);
                 break;
@@ -133,8 +132,7 @@ public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResults
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(v.getContext(), "CLICKED", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(v.getContext(), ProfileActivity.class).putExtra("congressMemberWrapper", mDataSet.get(position));
+                Intent intent = new Intent(v.getContext(), DetailPageActivity.class).putExtra("congressMemberWrapper", mDataSet.get(position));
                 v.getContext().startActivity(intent);
                 ((Activity) parent.getContext()).overridePendingTransition(R.anim.enter, R.anim.exit);
             }
@@ -165,7 +163,6 @@ public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResults
             button.setBackground(ContextCompat.getDrawable(parent.getContext(), R.drawable.round_button_invalid));
 
         String url = null;
-
         switch (socialMedia) {
             case "contact form":
             case "website URL":
@@ -187,7 +184,7 @@ public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResults
             @Override
             public void onClick(View v) {
                 if (id.equals("null"))
-                    Toast.makeText(v.getContext(), "No "+socialMedia+" found", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(v.getContext(), "Missing "+socialMedia, Toast.LENGTH_SHORT).show();
                 else
                     v.getContext().startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse(actual_url)));
             }

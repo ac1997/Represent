@@ -384,8 +384,7 @@ public class DataHelper {
 
             if (result.getString("short_title").equals("Sen.")) {
                 congressMemberWrapper.roleSectionUpdates(result.getString("chamber"), result.getString("title"), result.getString("party"),
-                        result.getString("state"), result.getString("start_date"),
-                        result.getString("end_date"), result.getString("office"), result.getString("phone"),
+                        result.getString("state"), result.getString("start_date"), result.getString("end_date"), result.getString("office"), result.getString("phone"),
                         result.getString("contact_form"));
             } else {
                 congressMemberWrapper.roleSectionUpdates(result.getString("chamber"), result.getString("title"), result.getString("party"),

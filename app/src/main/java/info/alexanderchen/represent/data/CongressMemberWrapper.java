@@ -4,9 +4,83 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CongressMemberWrapper implements Parcelable {
+    public static final Map<String, String> STATE_MAP;
+    static {
+        STATE_MAP = new HashMap<>();
+        STATE_MAP.put("AL", "Alabama");
+        STATE_MAP.put("AK", "Alaska");
+        STATE_MAP.put("AB", "Alberta");
+        STATE_MAP.put("AZ", "Arizona");
+        STATE_MAP.put("AR", "Arkansas");
+        STATE_MAP.put("BC", "British Columbia");
+        STATE_MAP.put("CA", "California");
+        STATE_MAP.put("CO", "Colorado");
+        STATE_MAP.put("CT", "Connecticut");
+        STATE_MAP.put("DE", "Delaware");
+        STATE_MAP.put("DC", "District Of Columbia");
+        STATE_MAP.put("FL", "Florida");
+        STATE_MAP.put("GA", "Georgia");
+        STATE_MAP.put("GU", "Guam");
+        STATE_MAP.put("HI", "Hawaii");
+        STATE_MAP.put("ID", "Idaho");
+        STATE_MAP.put("IL", "Illinois");
+        STATE_MAP.put("IN", "Indiana");
+        STATE_MAP.put("IA", "Iowa");
+        STATE_MAP.put("KS", "Kansas");
+        STATE_MAP.put("KY", "Kentucky");
+        STATE_MAP.put("LA", "Louisiana");
+        STATE_MAP.put("ME", "Maine");
+        STATE_MAP.put("MB", "Manitoba");
+        STATE_MAP.put("MD", "Maryland");
+        STATE_MAP.put("MA", "Massachusetts");
+        STATE_MAP.put("MI", "Michigan");
+        STATE_MAP.put("MN", "Minnesota");
+        STATE_MAP.put("MS", "Mississippi");
+        STATE_MAP.put("MO", "Missouri");
+        STATE_MAP.put("MT", "Montana");
+        STATE_MAP.put("NE", "Nebraska");
+        STATE_MAP.put("NV", "Nevada");
+        STATE_MAP.put("NB", "New Brunswick");
+        STATE_MAP.put("NH", "New Hampshire");
+        STATE_MAP.put("NJ", "New Jersey");
+        STATE_MAP.put("NM", "New Mexico");
+        STATE_MAP.put("NY", "New York");
+        STATE_MAP.put("NF", "Newfoundland");
+        STATE_MAP.put("NC", "North Carolina");
+        STATE_MAP.put("ND", "North Dakota");
+        STATE_MAP.put("NT", "Northwest Territories");
+        STATE_MAP.put("NS", "Nova Scotia");
+        STATE_MAP.put("NU", "Nunavut");
+        STATE_MAP.put("OH", "Ohio");
+        STATE_MAP.put("OK", "Oklahoma");
+        STATE_MAP.put("ON", "Ontario");
+        STATE_MAP.put("OR", "Oregon");
+        STATE_MAP.put("PA", "Pennsylvania");
+        STATE_MAP.put("PE", "Prince Edward Island");
+        STATE_MAP.put("PR", "Puerto Rico");
+        STATE_MAP.put("QC", "Quebec");
+        STATE_MAP.put("RI", "Rhode Island");
+        STATE_MAP.put("SK", "Saskatchewan");
+        STATE_MAP.put("SC", "South Carolina");
+        STATE_MAP.put("SD", "South Dakota");
+        STATE_MAP.put("TN", "Tennessee");
+        STATE_MAP.put("TX", "Texas");
+        STATE_MAP.put("UT", "Utah");
+        STATE_MAP.put("VT", "Vermont");
+        STATE_MAP.put("VI", "Virgin Islands");
+        STATE_MAP.put("VA", "Virginia");
+        STATE_MAP.put("WA", "Washington");
+        STATE_MAP.put("WV", "West Virginia");
+        STATE_MAP.put("WI", "Wisconsin");
+        STATE_MAP.put("WY", "Wyoming");
+        STATE_MAP.put("YT", "Yukon Territory");
+    }
+
     private String id;
     private String name;
     private String chamber;
@@ -31,6 +105,16 @@ public class CongressMemberWrapper implements Parcelable {
     public CongressMemberWrapper(String id, String name, String website, String twitter_id, String facebook_id, String youtube_id, String api_uri) {
         this.id = id;
         this.name = name;
+        this.chamber = "";
+        this.title = "";
+        this.party = "";
+        this.state = "";
+        this.district = "";
+        this.start_date = "";
+        this.end_date = "";
+        this.office = "";
+        this.phone = "";
+        this.contact_form = "";
         this.website = website;
         this.twitter_id = twitter_id;
         this.facebook_id = facebook_id;
@@ -93,7 +177,7 @@ public class CongressMemberWrapper implements Parcelable {
         this.title = title.replace(",", "");
         this.party = party;
         this.state = state;
-        this.district = district;
+        this.district = ((district.equals("At-Large")) ? "1" : district);
         this.start_date = start_date;
         this.end_date = end_date;
         this.office = office;
@@ -106,7 +190,6 @@ public class CongressMemberWrapper implements Parcelable {
         this.title = title.replace(",", "");
         this.party = party;
         this.state = state;
-        this.district = "";
         this.start_date = start_date;
         this.end_date = end_date;
         this.office = office;
@@ -196,7 +279,10 @@ public class CongressMemberWrapper implements Parcelable {
     }
 
     public String getOffice() {
-        return office;
+        if (this.office.equals("null"))
+            return "No Office Address on File";
+        else
+            return office;
     }
 
     public void setOffice(String office) {
@@ -204,7 +290,10 @@ public class CongressMemberWrapper implements Parcelable {
     }
 
     public String getPhone() {
-        return phone;
+        if (this.phone.equals("null"))
+            return "No Phone Number on File";
+        else
+            return phone;
     }
 
     public void setPhone(String phone) {
@@ -273,6 +362,67 @@ public class CongressMemberWrapper implements Parcelable {
 
     public void setSubCommittees(List<SubCommitteeWrapper> subCommittees) {
         this.subCommittees = subCommittees;
+    }
+
+    public String getShortTitle() {
+        if(this.title.contains(" "))
+            return this.title.substring(0, this.title.indexOf(" "));
+        else
+            return this.title;
+    }
+
+    public String getImageURL() {
+        return "http://bioguide.congress.gov/bioguide/photo/"+this.id.charAt(0)+"/"+id+".jpg";
+    }
+
+    public String getFullTitle() {
+        switch (this.chamber) {
+            case "Senate":
+                return "Senator of " + STATE_MAP.get(this.state);
+            case "House":
+                return "Representative of " + STATE_MAP.get(this.state) + "'s " + this.getFullDistrict();
+            default:
+                return "null";
+        }
+    }
+
+    public String getFullChamber() {
+        switch (this.chamber) {
+            case "Senate":
+                return "United States Senate";
+            case "House":
+                return "United States House of Representatives";
+            default:
+                return "null";
+        }
+    }
+
+    public String getFullState() {
+        return STATE_MAP.get(this.state);
+    }
+
+    public String getFullDistrict() {
+        if (this.district.equals(""))
+            return "";
+        else
+            return ordinal(Integer.parseInt(this.district)) + " District";
+    }
+
+    public boolean isSenator() {
+        return this.chamber.equals("Senate");
+    }
+
+    private static String ordinal(int i) {
+        String[] sufixes = new String[] { "th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th" };
+        switch (i % 100) {
+            case 11:
+            case 12:
+            case 13:
+                return i + "th";
+            default:
+                return i + sufixes[i % 10];
+
+        }
     }
 
     @Override

@@ -12,9 +12,9 @@
 
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="35dp"
             android:gravity="bottom"
-            android:paddingBottom="5dp"
+            android:paddingBottom="0dp"
             android:paddingStart="15dp"
             android:text="About"
             android:textColor="@color/colorAccent" />
@@ -47,7 +47,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="5"
                     android:gravity="bottom"
-                    android:text="Representative of Mississippi’s 1st District"
+                    android:text="Senator 1st Class of Mississippi’s 1st District"
                     android:textAppearance="@android:style/TextAppearance.Medium"
                     android:textColor="@color/black"
                     android:textSize="14sp" />
@@ -271,7 +271,7 @@
                 android:gravity="center_vertical|center_horizontal"
                 android:text="&#xf0e0;"
                 android:textColor="#fff"
-                android:textSize="21sp" />
+                android:textSize="24sp" />
 
             <Button
                 android:id="@+id/buttonWebsiteProfile"
@@ -283,7 +283,7 @@
                 android:gravity="center_vertical|center_horizontal"
                 android:text="&#xf57d;"
                 android:textColor="#fff"
-                android:textSize="21sp" />
+                android:textSize="24sp" />
 
             <Button
                 android:id="@+id/buttonFacebookProfile"
@@ -295,7 +295,7 @@
                 android:gravity="center_vertical|center_horizontal"
                 android:text="&#xf39e;"
                 android:textColor="#fff"
-                android:textSize="21sp" />
+                android:textSize="24sp" />
 
             <Button
                 android:id="@+id/buttonTwitterProfile"
@@ -307,7 +307,7 @@
                 android:gravity="center_vertical|center_horizontal"
                 android:text="&#xf099;"
                 android:textColor="#fff"
-                android:textSize="21sp" />
+                android:textSize="24sp" />
 
             <Button
                 android:id="@+id/buttonYoutubeProfile"
@@ -319,7 +319,7 @@
                 android:gravity="center_vertical|center_horizontal"
                 android:text="&#xf167;"
                 android:textColor="#fff"
-                android:textSize="21sp" />
+                android:textSize="24sp" />
 
         </LinearLayout>
 
