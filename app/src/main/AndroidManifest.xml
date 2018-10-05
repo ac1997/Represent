@@ -11,7 +11,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".HomepageActivity" android:screenOrientation="portrait">
+        <activity android:name=".HomepageActivity" android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.Launcher">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -20,6 +21,7 @@
             <meta-data android:name="android.app.default_searchable"
                 android:value=".SearchResultActivity" />
         </activity>
-    </application>
 
+        <activity android:name=".ProfileActivity"></activity>
+    </application>
 </manifest>

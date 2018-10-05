@@ -6,5 +6,7 @@
     <color name="colorSecondary">#FDAB40</color>
     <color name="colorSecondaryLight">#FFDD71</color>
     <color name="colorSecondaryDark">#C77C02</color>
-    <color name="homepageBackground">#e1e2e1</color>
+    <color name="homepageBackground">#E1E2E1</color>
+    <color name="dimTextColor">#B8BFCD</color>
+    <color name="subTextColor">#8f8f8f</color>
 </resources>

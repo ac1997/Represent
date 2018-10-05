@@ -21,19 +21,19 @@ public class CongressMemberWrapper implements Parcelable {
     private String contact_form;
     private String website;
     private String twitter_id;
-    private String facebook_account;
+    private String facebook_id;
     private String youtube_id;
     private String api_uri;
 
     private List<CommitteeWrapper> committees;
     private List<SubCommitteeWrapper> subCommittees;
 
-    public CongressMemberWrapper(String id, String name, String website, String twitter_id, String facebook_account, String youtube_id, String api_uri) {
+    public CongressMemberWrapper(String id, String name, String website, String twitter_id, String facebook_id, String youtube_id, String api_uri) {
         this.id = id;
         this.name = name;
         this.website = website;
         this.twitter_id = twitter_id;
-        this.facebook_account = facebook_account;
+        this.facebook_id = facebook_id;
         this.youtube_id = youtube_id;
         this.api_uri = api_uri;
 
@@ -41,7 +41,7 @@ public class CongressMemberWrapper implements Parcelable {
         this.subCommittees = new ArrayList<>();
     }
 
-    public CongressMemberWrapper(String id, String name, String chamber, String title, String party, String state, String district, String start_date, String end_date, String office, String phone, String contact_form, String website, String twitter_id, String facebook_account, String youtube_id) {
+    public CongressMemberWrapper(String id, String name, String chamber, String title, String party, String state, String district, String start_date, String end_date, String office, String phone, String contact_form, String website, String twitter_id, String facebook_id, String youtube_id) {
         this.id = id;
         this.name = name;
         this.chamber = chamber;
@@ -56,7 +56,7 @@ public class CongressMemberWrapper implements Parcelable {
         this.contact_form = contact_form;
         this.website = website;
         this.twitter_id = twitter_id;
-        this.facebook_account = facebook_account;
+        this.facebook_id = facebook_id;
         this.youtube_id = youtube_id;
 
         this.committees = new ArrayList<>();
@@ -78,7 +78,7 @@ public class CongressMemberWrapper implements Parcelable {
         this.contact_form = in.readString();
         this.website = in.readString();;
         this.twitter_id = in.readString();
-        this.facebook_account = in.readString();
+        this.facebook_id = in.readString();
         this.youtube_id = in.readString();
         this.api_uri = in.readString();
 
@@ -235,12 +235,12 @@ public class CongressMemberWrapper implements Parcelable {
         this.twitter_id = twitter_id;
     }
 
-    public String getFacebook_account() {
-        return facebook_account;
+    public String getFacebook_id() {
+        return facebook_id;
     }
 
-    public void setFacebook_account(String facebook_account) {
-        this.facebook_account = facebook_account;
+    public void setFacebook_id(String facebook_id) {
+        this.facebook_id = facebook_id;
     }
 
     public String getYoutube_id() {
@@ -296,7 +296,7 @@ public class CongressMemberWrapper implements Parcelable {
         parcel.writeString(this.contact_form);
         parcel.writeString(this.website);
         parcel.writeString(this.twitter_id);
-        parcel.writeString(this.facebook_account);
+        parcel.writeString(this.facebook_id);
         parcel.writeString(this.youtube_id);
         parcel.writeString(this.api_uri);
 

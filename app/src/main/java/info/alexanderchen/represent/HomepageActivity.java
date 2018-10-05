@@ -69,6 +69,7 @@ public class HomepageActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_homepage);
     }
@@ -106,6 +107,8 @@ public class HomepageActivity extends AppCompatActivity {
         super.onResume();
 
         if (mBundleRecyclerViewState != null) {
+            hideBackground();
+
             Parcelable listState = mBundleRecyclerViewState.getParcelable(SAVED_RECYCLER_VIEW_STATUS_ID);
             mSearchResultsAdapter.setmDataSet(mBundleRecyclerViewState.getParcelableArrayList(SAVED_RECYCLER_VIEW_DATASET_ID));
             mSearchResultsList.getLayoutManager().onRestoreInstanceState(listState);
