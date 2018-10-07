@@ -170,7 +170,6 @@ public class DataHelper {
     @SuppressLint("MissingPermission")
     public static void findResults(final Context context, String query, final RequestQueue queue, final OnFindResultsListener listener, final OnZipcodeResultListener zipCodeListener) {
         returnedRequestCount = 0;
-        Log.d("VOLLEY: ",query);
         switch (query) {
             case CURRENT_LOCATION:
                 LocationServices.getFusedLocationProviderClient(context).getLastLocation()
