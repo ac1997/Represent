@@ -49,9 +49,6 @@ public class BillTab extends Fragment {
         recyclerViewBill.addItemDecoration(new InsetDividerItemDecoration(view.getContext(), R.id.textViewBillName));
 
         billListAdapter.swapData(billWrappers);
-
-        for(BillWrapper c : billWrappers)
-            Log.e("BILL", c.getShortTitle());
     }
 
     @Override

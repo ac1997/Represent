@@ -1,4 +1,4 @@
-package info.alexanderchen.represent;
+package info.alexanderchen.represent.utils;
 
 import android.content.Context;
 import android.graphics.Typeface;

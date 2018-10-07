@@ -3,7 +3,6 @@ package info.alexanderchen.represent;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
@@ -17,12 +16,10 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.util.Log;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.android.volley.RequestQueue;
@@ -31,8 +28,6 @@ import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.SearchSuggestionsAdapter;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.arlib.floatingsearchview.util.Util;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 
 import java.util.List;
 
@@ -47,7 +42,6 @@ public class HomepageActivity extends AppCompatActivity {
     private static final String CURRENT_LOCATION = "Current Location";
     private static final String RANDOM_LOCATION = "Random Location";
 
-    private FusedLocationProviderClient mFusedLocationClient;
     private ImageView mCogressImageView;
     private TextView mNoDataTitleTextView;
     private Button mShowMeSomethingButton;
@@ -99,7 +93,17 @@ public class HomepageActivity extends AppCompatActivity {
         mNoDataTitleTextView = findViewById(R.id.textViewNoDataTitle);
         mShowMeSomethingButton = findViewById(R.id.buttonShowMeSomething);
 
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        mShowMeSomethingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mLastQuery = RANDOM_LOCATION;
+                mSearchView.setSearchText(mLastQuery);
+                showLoadingView();
+                mSuggestionClicked = true;
+                queryResults(mLastQuery);
+            }
+        });
+
         volleyRequestQueue = Volley.newRequestQueue(this);
 
         setupFloatingSearch();
@@ -121,7 +125,7 @@ public class HomepageActivity extends AppCompatActivity {
         super.onResume();
 
         if (mBundleRecyclerViewState != null) {
-            setLoadingView();
+            showLoadingView();
             Parcelable listState = mBundleRecyclerViewState.getParcelable(SAVED_RECYCLER_VIEW_STATUS_ID);
             mSearchResultsAdapter.setmDataSet(mBundleRecyclerViewState.getParcelableArrayList(SAVED_RECYCLER_VIEW_DATASET_ID));
             mSearchResultsList.getLayoutManager().onRestoreInstanceState(listState);
@@ -161,25 +165,25 @@ public class HomepageActivity extends AppCompatActivity {
         mSearchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
             @Override
             public void onSuggestionClicked(final SearchSuggestion searchSuggestion) {
-                setLoadingView();
-                ZipCodeSuggestion zipCodeSuggestion = (ZipCodeSuggestion) searchSuggestion;
-                queryResults(zipCodeSuggestion.getBody());
                 mSuggestionClicked = true;
                 mLastQuery = searchSuggestion.getBody();
                 mSearchView.setSearchText(mLastQuery);
                 mSearchView.clearSearchFocus();
+                showLoadingView();
+                ZipCodeSuggestion zipCodeSuggestion = (ZipCodeSuggestion) searchSuggestion;
+                queryResults(zipCodeSuggestion.getBody());
                 Log.d(TAG, "onSuggestionClicked()");
             }
 
             @SuppressLint("MissingPermission")
             @Override
             public void onSearchAction(String query) {
-                setLoadingView();
-                mLastQuery = query;
-                queryResults(query);
                 mSuggestionClicked = true;
+                mLastQuery = query;
                 mSearchView.setSearchText(mLastQuery);
                 mSearchView.clearSearchFocus();
+                showLoadingView();
+                queryResults(query);
 
                 Log.d(TAG, "onSearchAction()");
             }
@@ -205,7 +209,7 @@ public class HomepageActivity extends AppCompatActivity {
             @Override
             public void onActionMenuItemSelected(MenuItem item) {
 
-                setLoadingView();
+                showLoadingView();
                 if (item.getItemId() == R.id.action_location)
                     mLastQuery = CURRENT_LOCATION;
                 else if (item.getItemId() == R.id.action_random)
@@ -213,9 +217,9 @@ public class HomepageActivity extends AppCompatActivity {
 
                 Log.d(TAG, "onSearchAction() query: " + mLastQuery);
 
-                queryResults(mLastQuery);
                 mSuggestionClicked = true;
                 mSearchView.setSearchText(mLastQuery);
+                queryResults(mLastQuery);
             }
         });
 
@@ -302,7 +306,7 @@ public class HomepageActivity extends AppCompatActivity {
     }
 
     private void queryResults(String query) {
-        DataHelper.findResults(HomepageActivity.this, query, volleyRequestQueue, mFusedLocationClient,
+        DataHelper.findResults(HomepageActivity.this, query, volleyRequestQueue,
                 new DataHelper.OnFindResultsListener() {
 
                     @Override
@@ -327,7 +331,7 @@ public class HomepageActivity extends AppCompatActivity {
                 });
     }
 
-    private void setLoadingView() {
+    private void showLoadingView() {
         findViewById( R.id.relativeLayoutMain).setBackgroundColor(Color.WHITE);
         appBarLayoutMain.getForeground().setAlpha(150);
         linearLayoutMask.getForeground().setAlpha(150);

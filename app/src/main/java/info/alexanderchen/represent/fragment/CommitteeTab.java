@@ -48,9 +48,6 @@ public class CommitteeTab extends Fragment {
         committeeListAdapter.swapData(committeeWrappers);
         recyclerViewCommittees.addItemDecoration(new InsetDividerItemDecoration(view.getContext(), R.id.textViewCommitteeName));
         recyclerViewCommittees.setAdapter(committeeListAdapter);
-
-        for(CommitteeWrapper c : committeeWrappers)
-            Log.e("COMMITTEE", c.getName());
     }
 
     @Override

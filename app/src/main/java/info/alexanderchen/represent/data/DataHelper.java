@@ -14,7 +14,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.json.JSONArray;
@@ -24,7 +24,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -169,12 +168,12 @@ public class DataHelper {
 
 
     @SuppressLint("MissingPermission")
-    public static void findResults(final Context context, String query, final RequestQueue queue, FusedLocationProviderClient fusedLocationClient, final OnFindResultsListener listener, final OnZipcodeResultListener zipCodeListener) {
+    public static void findResults(final Context context, String query, final RequestQueue queue, final OnFindResultsListener listener, final OnZipcodeResultListener zipCodeListener) {
         returnedRequestCount = 0;
         Log.d("VOLLEY: ",query);
         switch (query) {
             case CURRENT_LOCATION:
-                fusedLocationClient.getLastLocation()
+                LocationServices.getFusedLocationProviderClient(context).getLastLocation()
                         .addOnSuccessListener((Activity) context, new OnSuccessListener<Location>() {
                             @Override
                             public void onSuccess(Location location) {
@@ -182,6 +181,7 @@ public class DataHelper {
                                     double latitude = location.getLatitude();
                                     double longitude = location.getLongitude();
                                     String latLong = Double.toString(latitude) + "," + Double.toString(longitude);
+                                    Log.e("LAT LONG", latLong);
 
                                     String url = GEOCODIO_API_BASE_URL + "reverse?q=" + latLong + GEOCODIO_API_KEY;
 

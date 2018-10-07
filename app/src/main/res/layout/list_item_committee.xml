@@ -7,9 +7,9 @@
     app:layout_constraintBottom_toBottomOf="parent"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent">
+    app:layout_constraintTop_toTopOf="parent" >
 
-    <info.alexanderchen.represent.FontAwesome
+    <info.alexanderchen.represent.utils.FontAwesome
         android:id="@+id/textViewCommitteeIcon"
         android:layout_width="0dp"
         android:layout_height="match_parent"
@@ -25,7 +25,8 @@
         android:layout_height="match_parent"
         android:layout_weight="5"
         android:gravity="center_vertical"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingEnd="20dp">
 
         <TextView
             android:id="@+id/textViewCommitteeName"
@@ -49,16 +50,5 @@
             android:textColor="@color/subTextColor" />
 
     </LinearLayout>
-
-    <ImageView
-        android:id="@+id/imageView3"
-        android:layout_width="0dp"
-        android:layout_height="30dp"
-        android:layout_gravity="center"
-        android:layout_marginEnd="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_weight="0.5"
-        android:alpha="0.5"
-        app:srcCompat="@drawable/ic_arrow_right" />
 
 </LinearLayout>

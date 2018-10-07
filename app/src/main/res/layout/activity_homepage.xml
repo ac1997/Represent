@@ -143,7 +143,9 @@
             android:layout_marginStart="100dp"
             android:layout_marginTop="10dp"
             android:background="@color/colorSecondary"
-            android:text="SHOW ME SOMETHING" />
+            android:text="SHOW ME SOMETHING"
+            android:clickable="true"
+            android:focusable="true" />
 
     </RelativeLayout>
 

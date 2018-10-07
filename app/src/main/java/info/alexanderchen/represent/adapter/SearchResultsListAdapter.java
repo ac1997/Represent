@@ -25,7 +25,7 @@ import java.util.List;
 
 import info.alexanderchen.represent.DetailPageActivity;
 import info.alexanderchen.represent.R;
-import info.alexanderchen.represent.Typefaces;
+import info.alexanderchen.represent.utils.Typefaces;
 import info.alexanderchen.represent.data.CongressMemberWrapper;
 
 public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResultsListAdapter.ViewHolder> {

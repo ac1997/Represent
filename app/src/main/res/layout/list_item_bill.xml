@@ -7,9 +7,12 @@
     app:layout_constraintBottom_toBottomOf="parent"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent">
+    app:layout_constraintTop_toTopOf="parent"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:attr/selectableItemBackground" >
 
-    <info.alexanderchen.represent.FontAwesome
+    <info.alexanderchen.represent.utils.FontAwesome
         android:id="@+id/textViewBillIcon"
         android:layout_width="0dp"
         android:layout_height="match_parent"

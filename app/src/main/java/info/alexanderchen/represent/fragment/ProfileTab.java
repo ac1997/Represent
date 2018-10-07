@@ -17,7 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import info.alexanderchen.represent.R;
-import info.alexanderchen.represent.Typefaces;
+import info.alexanderchen.represent.utils.Typefaces;
 import info.alexanderchen.represent.data.CongressMemberWrapper;
 
 public class ProfileTab extends Fragment {
