@@ -9,4 +9,5 @@
     <color name="homepageBackground">#E1E2E1</color>
     <color name="dimTextColor">#B8BFCD</color>
     <color name="subTextColor">#8f8f8f</color>
+    <color name="colorLoadingImage">#feccbc</color>
 </resources>

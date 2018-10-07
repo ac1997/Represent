@@ -99,8 +99,8 @@ public class CongressMemberWrapper implements Parcelable {
     private String youtube_id;
     private String api_uri;
 
-    private List<CommitteeWrapper> committees;
-    private List<SubCommitteeWrapper> subCommittees;
+    private List<CommitteeWrapper> committeeWrappers;
+    private List<BillWrapper> billWrappers;
 
     public CongressMemberWrapper(String id, String name, String website, String twitter_id, String facebook_id, String youtube_id, String api_uri) {
         this.id = id;
@@ -121,8 +121,8 @@ public class CongressMemberWrapper implements Parcelable {
         this.youtube_id = youtube_id;
         this.api_uri = api_uri;
 
-        this.committees = new ArrayList<>();
-        this.subCommittees = new ArrayList<>();
+        this.committeeWrappers = new ArrayList<>();
+        this.billWrappers = new ArrayList<>();
     }
 
     public CongressMemberWrapper(String id, String name, String chamber, String title, String party, String state, String district, String start_date, String end_date, String office, String phone, String contact_form, String website, String twitter_id, String facebook_id, String youtube_id) {
@@ -143,8 +143,8 @@ public class CongressMemberWrapper implements Parcelable {
         this.facebook_id = facebook_id;
         this.youtube_id = youtube_id;
 
-        this.committees = new ArrayList<>();
-        this.subCommittees = new ArrayList<>();
+        this.committeeWrappers = new ArrayList<>();
+        this.billWrappers = new ArrayList<>();
     }
 
     protected CongressMemberWrapper(Parcel in) {
@@ -166,10 +166,10 @@ public class CongressMemberWrapper implements Parcelable {
         this.youtube_id = in.readString();
         this.api_uri = in.readString();
 
-        this.committees = new ArrayList<>();
-        this.subCommittees = new ArrayList<>();
-        in.readTypedList(committees, CommitteeWrapper.CREATOR);
-        in.readTypedList(subCommittees, SubCommitteeWrapper.CREATOR);
+        this.committeeWrappers = new ArrayList<>();
+        in.readTypedList(committeeWrappers, CommitteeWrapper.CREATOR);
+        this.billWrappers = new ArrayList<>();
+        in.readTypedList(billWrappers, BillWrapper.CREATOR);
     }
 
     public void roleSectionUpdates(String chamber, String title, String party, String state, String district, String start_date, String end_date, String office, String phone, String contact_form) {
@@ -348,20 +348,20 @@ public class CongressMemberWrapper implements Parcelable {
         this.api_uri = api_uri;
     }
 
-    public List<CommitteeWrapper> getCommittees() {
-        return committees;
+    public List<CommitteeWrapper> getCommitteeWrappers() {
+        return committeeWrappers;
     }
 
-    public void setCommittees(List<CommitteeWrapper> committees) {
-        this.committees = committees;
+    public void setCommitteeWrappers(List<CommitteeWrapper> committees) {
+        this.committeeWrappers = committees;
     }
 
-    public List<SubCommitteeWrapper> getSubCommittees() {
-        return subCommittees;
+    public List<BillWrapper> getBillWrappers() {
+        return billWrappers;
     }
 
-    public void setSubCommittees(List<SubCommitteeWrapper> subCommittees) {
-        this.subCommittees = subCommittees;
+    public void setBillWrappers(List<BillWrapper> billWrappers) {
+        this.billWrappers = billWrappers;
     }
 
     public String getShortTitle() {
@@ -378,9 +378,9 @@ public class CongressMemberWrapper implements Parcelable {
     public String getFullTitle() {
         switch (this.chamber) {
             case "Senate":
-                return "Senator of " + STATE_MAP.get(this.state);
+                return this.title+" of "+STATE_MAP.get(this.state);
             case "House":
-                return "Representative of " + STATE_MAP.get(this.state) + "'s " + this.getFullDistrict();
+                return this.title+" of "+STATE_MAP.get(this.state)+"'s "+this.getFullDistrict();
             default:
                 return "null";
         }
@@ -450,8 +450,8 @@ public class CongressMemberWrapper implements Parcelable {
         parcel.writeString(this.youtube_id);
         parcel.writeString(this.api_uri);
 
-        parcel.writeTypedList(this.committees);
-        parcel.writeTypedList(this.subCommittees);
+        parcel.writeTypedList(this.committeeWrappers);
+        parcel.writeTypedList(this.billWrappers);
     }
 
     public static final Creator<CongressMemberWrapper> CREATOR = new Creator<CongressMemberWrapper>() {

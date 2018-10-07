@@ -31,16 +31,10 @@ import info.alexanderchen.represent.data.CongressMemberWrapper;
 public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResultsListAdapter.ViewHolder> {
 
     private ViewGroup parent;
-
     private List<CongressMemberWrapper> mDataSet = new ArrayList<>();
-
     private int mLastAnimatedItemPosition = -1;
 
-    public interface OnItemClickListener{
-        void onClick(CongressMemberWrapper congressMemberWrapper);
-    }
-
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder {
         public final ImageView mMemberPicture;
         public final ImageView mMemberParty;
         public final TextView mMemberName;
@@ -51,30 +45,25 @@ public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResults
         public final Button mFacebookButton;
         public final Button mYoutubeButton;
 
-        public ViewHolder(View view) {
-            super(view);
-            mMemberPicture = view.findViewById(R.id.imageViewProfileMemberImage);
-            mMemberParty = view.findViewById(R.id.member_party);
-            mMemberName = view.findViewById(R.id.member_name);
-            mMemberDesc = view.findViewById(R.id.member_basic_desc);
-            mEmailButton = view.findViewById(R.id.button_email);
-            mWebsiteButton = view.findViewById(R.id.button_website);
-            mTwitterButton = view.findViewById(R.id.button_twitter);
-            mFacebookButton = view.findViewById(R.id.button_facebook);
-            mYoutubeButton = view.findViewById(R.id.button_youtube);
+        public ViewHolder(View itemView) {
+            super(itemView);
+            mMemberPicture = itemView.findViewById(R.id.imageViewProfileMemberImage);
+            mMemberParty = itemView.findViewById(R.id.member_party);
+            mMemberName = itemView.findViewById(R.id.member_name);
+            mMemberDesc = itemView.findViewById(R.id.member_basic_desc);
+            mEmailButton = itemView.findViewById(R.id.button_email);
+            mWebsiteButton = itemView.findViewById(R.id.button_website);
+            mTwitterButton = itemView.findViewById(R.id.button_twitter);
+            mFacebookButton = itemView.findViewById(R.id.button_facebook);
+            mYoutubeButton = itemView.findViewById(R.id.button_youtube);
         }
-    }
-
-    public void swapData(List<CongressMemberWrapper> mNewDataSet) {
-        mDataSet = mNewDataSet;
-        notifyDataSetChanged();
     }
 
     @Override
     public SearchResultsListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         this.parent = parent;
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.search_results_list_item, parent, false);
+                .inflate(R.layout.list_item_search_results, parent, false);
 
         Button button;
         Typeface font = Typefaces.get(parent.getContext(), "fa-solid-900.ttf");
@@ -105,9 +94,12 @@ public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResults
         String url = "http://bioguide.congress.gov/bioguide/photo/"+id.charAt(0)+"/"+id+".jpg";
 
         holder.mMemberName.setText(congressMember.getName());
-        holder.mMemberDesc.setText(party+" | "+congressMember.getTitle());
+        if(congressMember.isSenator())
+            holder.mMemberDesc.setText(congressMember.getParty()+" | "+congressMember.getShortTitle()+" | "+congressMember.getState());
+        else
+        holder.mMemberDesc.setText(congressMember.getParty()+" | "+congressMember.getShortTitle()+" | "+congressMember.getState()+"-"+congressMember.getDistrict());
 
-        RequestOptions requestOptions = new RequestOptions().placeholder(R.drawable.no_profile_img).centerCrop();
+        RequestOptions requestOptions = new RequestOptions().placeholder(R.drawable.profile_image_placeholder).centerCrop();
         Glide.with(parent.getContext()).setDefaultRequestOptions(requestOptions).load(url).into(holder.mMemberPicture);
 
         switch (party) {
@@ -147,6 +139,11 @@ public class SearchResultsListAdapter extends RecyclerView.Adapter<SearchResults
     @Override
     public int getItemCount() {
         return mDataSet.size();
+    }
+
+    public void swapData(List<CongressMemberWrapper> mNewDataSet) {
+        mDataSet = mNewDataSet;
+        notifyDataSetChanged();
     }
 
     private void animateItem(View view) {

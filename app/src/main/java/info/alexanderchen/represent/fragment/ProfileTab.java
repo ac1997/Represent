@@ -73,7 +73,6 @@ public class ProfileTab extends Fragment {
         setButtonListener(view, twitterButton, congressMemberWrapper.getTwitter_id(), "Twitter profile");
         setButtonListener(view, facebookButton, congressMemberWrapper.getFacebook_id(), "Facebook profile");
         setButtonListener(view, youtubeButton, congressMemberWrapper.getYoutube_id(), "YouTube profile");
-
     }
 
     private void setButtonListener(View view, Button button, final String id, final String socialMedia) {

@@ -23,10 +23,11 @@ import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 public class ZipCodeSuggestion implements SearchSuggestion {
 
     private String mZipCode;
-    private boolean mIsHistory = false;
+    private boolean mIsHistory;
 
-    public ZipCodeSuggestion(String suggestion) {
+    public ZipCodeSuggestion(String suggestion, boolean isHistory) {
         this.mZipCode = suggestion;
+        this.mIsHistory = isHistory;
     }
 
     public ZipCodeSuggestion(Parcel source) {
@@ -76,5 +77,18 @@ public class ZipCodeSuggestion implements SearchSuggestion {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(this.mZipCode);
         dest.writeInt(this.mIsHistory ? 1 : 0);
+    }
+
+    @Override
+    public int hashCode() {
+        return this.mZipCode.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj == this ||
+                obj instanceof ZipCodeSuggestion &&
+                        this.mZipCode.hashCode() == ((ZipCodeSuggestion) obj).mZipCode.hashCode();
+
     }
 }

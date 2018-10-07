@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class CommitteeWrapper implements Parcelable {
+    private boolean isSubCommittee;
     private String name;
     private String code;
     private String side;
@@ -11,22 +12,32 @@ public class CommitteeWrapper implements Parcelable {
     private String endDate;
     private String api_uri;
 
-    public CommitteeWrapper(String name, String code, String side, String title, String endDate, String api_uri) {
+    public CommitteeWrapper(boolean isSubCommittee, String name, String code, String side, String title, String endDate, String api_uri) {
+        this.isSubCommittee = isSubCommittee;
         this.name = name;
         this.code = code;
-        this.side = side;
+        this.side = side.substring(0, 1).toUpperCase() + side.substring(1);
         this.title = title;
         this.endDate = endDate;
         this.api_uri = api_uri;
     }
 
     protected CommitteeWrapper(Parcel in) {
+        isSubCommittee = in.readByte() != 0;
         name = in.readString();
         code = in.readString();
         side = in.readString();
         title = in.readString();
         endDate = in.readString();
         api_uri = in.readString();
+    }
+
+    public boolean isSubCommittee() {
+        return isSubCommittee;
+    }
+
+    public void setSubCommittee(boolean subCommittee) {
+        isSubCommittee = subCommittee;
     }
 
     public String getName() {
@@ -50,7 +61,7 @@ public class CommitteeWrapper implements Parcelable {
     }
 
     public void setSide(String side) {
-        this.side = side;
+        this.side = side.substring(0, 1).toUpperCase() + side.substring(1);
     }
 
     public String getTitle() {
@@ -84,6 +95,7 @@ public class CommitteeWrapper implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeByte((byte) (isSubCommittee ? 1 : 0));
         parcel.writeString(name);
         parcel.writeString(code);
         parcel.writeString(side);

@@ -1,5 +1,6 @@
 package info.alexanderchen.represent.data;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
@@ -15,7 +16,6 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.gson.JsonObject;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -72,45 +73,45 @@ public class DataHelper {
             new Pair<>(5751, 5751), new Pair<>(24517, 24517),
             new Pair<>(98004, 98009), new Pair<>(25813, 25813),
             new Pair<>(53201, 53228), new Pair<>(82941, 82941)));
-    private static String actualAddress;
-    private static List<String> congressionalDistricts = new ArrayList<>();
+    private static List<String> atLargeStates = Arrays.asList("AK", "DE", "MT", "ND", "SD", "VT", "WY", "DC");
 
-    private static List<ZipCodeSuggestion> sZipCodeSuggestions =
-            new ArrayList<>(Arrays.asList(
-                    new ZipCodeSuggestion(CURRENT_LOCATION),
-                    new ZipCodeSuggestion(RANDOM_LOCATION)));
+    private static String actualAddress;
+    private static int actualRequestCount;
+    private static int returnedRequestCount;
+
+    private static List<ZipCodeSuggestion> defaultZipCodeHistory = new ArrayList<>(Arrays.asList(
+            new ZipCodeSuggestion(CURRENT_LOCATION, false),
+            new ZipCodeSuggestion(RANDOM_LOCATION, false)));
+    private static LinkedHashSet<ZipCodeSuggestion> sZipCodeHistory = new LinkedHashSet<>();
 
     private static List<CongressMemberWrapper> congressMemberWrappers = new ArrayList<>();
 
+    public interface OnZipcodeResultListener {
+        void onResults(String zipcode);
+    }
+
     public interface OnFindResultsListener {
-        void onResults(List<CongressMemberWrapper> results);
+        void onResults(List<CongressMemberWrapper> results, boolean isCompeted);
     }
 
     public interface OnFindSuggestionsListener {
         void onResults(List<ZipCodeSuggestion> results);
     }
 
-    public static List<ZipCodeSuggestion> getHistory(Context context, int count) {
+    public static List<ZipCodeSuggestion> getHistory(Context context, int limit) {
+        if (sZipCodeHistory.size() == 0)
+            return defaultZipCodeHistory;
+        else {
+            List<ZipCodeSuggestion> suggestionList = new ArrayList<>(defaultZipCodeHistory);
+            List<ZipCodeSuggestion> resultsList = new ArrayList<>(sZipCodeHistory);
+            Collections.reverse(resultsList);
 
-        List<ZipCodeSuggestion> suggestionList = new ArrayList<>();
-        ZipCodeSuggestion zipCodeSuggestion;
-        for (int i = 0; i < sZipCodeSuggestions.size(); i++) {
-            zipCodeSuggestion = sZipCodeSuggestions.get(i);
-            zipCodeSuggestion.setIsHistory(true);
-            suggestionList.add(zipCodeSuggestion);
-            if (suggestionList.size() == count) {
-                break;
-            }
-        }
-        return suggestionList;
-    }
-
-    public static void resetSuggestionsHistory() {
-        for (ZipCodeSuggestion zipCodeSuggestion : sZipCodeSuggestions) {
-            if (zipCodeSuggestion.getmZipCode().equals(CURRENT_LOCATION) || zipCodeSuggestion.getmZipCode().equals(RANDOM_LOCATION))
-                continue;
+            if (limit-2 >= sZipCodeHistory.size())
+                suggestionList.addAll(resultsList);
             else
-                zipCodeSuggestion.setIsHistory(false);
+                suggestionList.addAll(resultsList.subList(0, limit-2));
+
+            return suggestionList;
         }
     }
 
@@ -120,42 +121,24 @@ public class DataHelper {
 
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
-
                 try {
                     Thread.sleep(simulatedDelay);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 
-                DataHelper.resetSuggestionsHistory();
                 List<ZipCodeSuggestion> suggestionList = new ArrayList<>();
-                if (!(constraint == null || constraint.length() == 0)) {
-
-                    for (ZipCodeSuggestion suggestion : sZipCodeSuggestions) {
-                        if (suggestion.getBody().toUpperCase()
-                                .startsWith(constraint.toString().toUpperCase()) || suggestion.getBody().toUpperCase()
-                                .equals(CURRENT_LOCATION.toUpperCase()) || suggestion.getBody().toUpperCase()
-                                .equals(RANDOM_LOCATION.toUpperCase())) {
+                if (constraint != null) {
+                    for (ZipCodeSuggestion suggestion : sZipCodeHistory) {
+                        if (constraint.equals("") || suggestion.getBody().toUpperCase().startsWith(constraint.toString().toUpperCase())) {
                             suggestionList.add(suggestion);
-                            if (limit != -1 && suggestionList.size() == limit) {
+                            if (suggestionList.size() == limit)
                                 break;
-                            }
                         }
                     }
                 }
 
                 FilterResults results = new FilterResults();
-                Collections.sort(suggestionList, new Comparator<ZipCodeSuggestion>() {
-                    @Override
-                    public int compare(ZipCodeSuggestion lhs, ZipCodeSuggestion rhs) {
-                        if (lhs.getmZipCode().equals((CURRENT_LOCATION.toUpperCase())))
-                            return -1;
-                        else if (lhs.getmZipCode().equals((RANDOM_LOCATION.toUpperCase())))
-                            return 0;
-                        else
-                            return 1;
-                    }
-                });
                 results.values = suggestionList;
                 results.count = suggestionList.size();
 
@@ -163,17 +146,31 @@ public class DataHelper {
             }
 
             @Override
-            protected void publishResults(CharSequence constraint, FilterResults results) {
-
+            protected void publishResults(CharSequence constraint, FilterResults filteredList) {
                 if (listener != null) {
-                    listener.onResults((List<ZipCodeSuggestion>) results.values);
+                    List<ZipCodeSuggestion> results = (List<ZipCodeSuggestion>) filteredList.values;
+                    List<ZipCodeSuggestion> suggestionList = new ArrayList<>(defaultZipCodeHistory);
+                    List<ZipCodeSuggestion> resultsList = new ArrayList<>(results);
+                    Collections.reverse(resultsList);
+
+                    if (limit-2 >= results.size())
+                        suggestionList.addAll(resultsList);
+                    else
+                        suggestionList.addAll(resultsList.subList(0, limit-2));
+
+                    listener.onResults(suggestionList);
+
+                    for (ZipCodeSuggestion z : sZipCodeHistory)
+                        Log.e("ZIPCODEHISTORY", z.getBody());
                 }
             }
         }.filter(query);
     }
 
 
-    public static void findResults(final Context context, String query, final RequestQueue queue, FusedLocationProviderClient fusedLocationClient, final OnFindResultsListener listener) {
+    @SuppressLint("MissingPermission")
+    public static void findResults(final Context context, String query, final RequestQueue queue, FusedLocationProviderClient fusedLocationClient, final OnFindResultsListener listener, final OnZipcodeResultListener zipCodeListener) {
+        returnedRequestCount = 0;
         Log.d("VOLLEY: ",query);
         switch (query) {
             case CURRENT_LOCATION:
@@ -194,9 +191,13 @@ public class DataHelper {
                                                 public void onResponse(JSONObject response) {
                                                     try {
                                                         JSONArray array = response.getJSONArray("results");
+                                                        String zipcode = array.getJSONObject(0).getJSONObject("address_components").getString("zip");
+                                                        if (zipCodeListener != null)
+                                                            zipCodeListener.onResults(zipcode);
+                                                        sZipCodeHistory.add(new ZipCodeSuggestion(zipcode, true));
                                                         actualAddress = array.getJSONObject(0).getString("formatted_address");
-                                                        Log.d("VOLLEY: ", "Response is: " + actualAddress);
                                                         requestResults(context, queue, listener);
+                                                        Log.d("VOLLEY: ", "Response is: " + actualAddress);
                                                     } catch (JSONException e) {
                                                         Log.e("JSON Exception", e.toString());
                                                     }
@@ -218,9 +219,14 @@ public class DataHelper {
             case RANDOM_LOCATION:
                 Pair<Integer, Integer> pair = sValidZipCodes.get(ThreadLocalRandom.current().nextInt(0, sValidZipCodes.size()));
                 Log.d("RANDOM LOCATION", pair.toString());
-                actualAddress = Integer.toString(ThreadLocalRandom.current().nextInt(pair.first, pair.second + 1));
-                requestResults(context, queue, listener);
+                actualAddress = String.valueOf(ThreadLocalRandom.current().nextInt(pair.first, pair.second + 1));
+                while(actualAddress.length() < 5)
+                    actualAddress = "0"+actualAddress;
 
+                if (zipCodeListener != null)
+                    zipCodeListener.onResults(actualAddress);
+                sZipCodeHistory.add(new ZipCodeSuggestion(actualAddress, true));
+                requestResults(context, queue, listener);
 
                 Log.d("RANDOM LOCATION", actualAddress);
                 break;
@@ -228,17 +234,17 @@ public class DataHelper {
                 query = query.trim();
                 if (query.length() != 5 || !query.matches("[0-9]+")) {
                     Toast.makeText(context, "Invalid Zip Code Entered", Toast.LENGTH_LONG).show();
+                    listener.onResults(null, true);
                 } else {
                     actualAddress = query;
+                    sZipCodeHistory.add(new ZipCodeSuggestion(actualAddress, true));
                     requestResults(context, queue, listener);
                 }
-                break;
         }
     }
 
     public static void requestResults(Context context, final RequestQueue queue, final OnFindResultsListener listener) {
         congressMemberWrappers.clear();
-        congressionalDistricts.clear();
         String geocodioUrl = GEOCODIO_API_BASE_URL+"geocode?q="+actualAddress+"&fields=cd115"+GEOCODIO_API_KEY;
 
         JsonObjectRequest geocodeGeocodioRequest = new JsonObjectRequest(Request.Method.GET, geocodioUrl, null,
@@ -261,14 +267,23 @@ public class DataHelper {
 
                                 for (int j = 0; j < districtsArray.length(); j++) {
                                     String districtNumber = districtsArray.getJSONObject(j).getString("district_number");
-                                    if(districtNumber.equals("0"))
-                                        districtNumber = "1";
+                                    for(String s: atLargeStates) {
+                                        if(s.trim().equals(state)) {
+                                            districtNumber = "1";
+                                            break;
+                                        }
+                                    }
                                     stateAndDistricts.add(state+"/"+districtNumber);
                                 }
                             }
+                            actualRequestCount = states.size() + stateAndDistricts.size();
 
                             for (String s : states) {
+                                if (s.equals("DC"))
+                                    continue;
+
                                 String url = PROPUBLICA_API_BASE_URL+"members/senate/"+s+"/current.json";
+                                Log.e("SENATE", url);
                                 JsonObjectRequest proPublicaSenateRequest = new JsonObjectRequest(Request.Method.GET,
                                         url, null,
                                         new Response.Listener<JSONObject>() {
@@ -280,14 +295,14 @@ public class DataHelper {
                                         new Response.ErrorListener() {
                                             @Override
                                             public void onErrorResponse(VolleyError error) {
-                                                Log.d("VOLLEY: ","That didn't work!");
+                                                volleyErrorHandler(error, listener);
                                             }
                                         }
                                 ) {
                                     @Override
                                     public Map getHeaders() {
                                         HashMap headers = new HashMap();
-                                        headers.put("X-API-Key", "wDLaqJO9eo46ODiznW024sRPIR1LBN6PBJgABNKT");
+                                        headers.put("X-API-Key", PROPUBLICA_API_KEY);
                                         return headers;
                                     }
                                 };
@@ -296,7 +311,8 @@ public class DataHelper {
 
                             for (String s : stateAndDistricts) {
                                 String url = PROPUBLICA_API_BASE_URL+"members/house/"+s+"/current.json";
-                                JsonObjectRequest proPublicaSenateRequest = new JsonObjectRequest(Request.Method.GET,
+                                Log.e("HOUSE0", url);
+                                JsonObjectRequest proPublicaHouseRequest = new JsonObjectRequest(Request.Method.GET,
                                         url, null,
                                         new Response.Listener<JSONObject>() {
                                             @Override
@@ -307,18 +323,18 @@ public class DataHelper {
                                         new Response.ErrorListener() {
                                             @Override
                                             public void onErrorResponse(VolleyError error) {
-                                                Log.d("VOLLEY: ","That didn't work!");
+                                                volleyErrorHandler(error, listener);
                                             }
                                         }
                                 ) {
                                     @Override
                                     public Map getHeaders() {
                                         HashMap headers = new HashMap();
-                                        headers.put("X-API-Key", "wDLaqJO9eo46ODiznW024sRPIR1LBN6PBJgABNKT");
+                                        headers.put("X-API-Key", PROPUBLICA_API_KEY);
                                         return headers;
                                     }
                                 };
-                                queue.add(proPublicaSenateRequest);
+                                queue.add(proPublicaHouseRequest);
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -339,42 +355,70 @@ public class DataHelper {
             JSONArray resultsArr = jsonObj.getJSONArray("results");
             for (int i = 0; i < resultsArr.length(); i++) {
                 final String fullName = resultsArr.getJSONObject(i).getString("name");
+                final String id = resultsArr.getJSONObject(i).getString("id");
                 final String url = resultsArr.getJSONObject(i).getString("api_uri");
 
-                JsonObjectRequest proPublicaSenateRequest = new JsonObjectRequest(Request.Method.GET,
+                JsonObjectRequest proPublicaRequest = new JsonObjectRequest(Request.Method.GET,
                         url, null,
                         new Response.Listener<JSONObject>() {
                             @Override
                             public void onResponse(JSONObject response) {
-                                Log.d("PROPUBLICA SUCCESS 1", response.toString());
-                                parseCongressMemberJSON(response, fullName, url, listener);
+                                requestBills(response, fullName, id, "introduced", queue, listener);
                             }
                         },
                         new Response.ErrorListener() {
                             @Override
                             public void onErrorResponse(VolleyError error) {
-                                Log.d("VOLLEY: ","That didn't work!");
+                                volleyErrorHandler(error, listener);
                             }
                         }
                 ) {
                     @Override
                     public Map getHeaders() {
                         HashMap headers = new HashMap();
-                        headers.put("X-API-Key", "wDLaqJO9eo46ODiznW024sRPIR1LBN6PBJgABNKT");
+                        headers.put("X-API-Key", PROPUBLICA_API_KEY);
                         return headers;
                     }
                 };
-                queue.add(proPublicaSenateRequest);
-
+                queue.add(proPublicaRequest);
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-    public static void parseCongressMemberJSON(JSONObject jsonObj, String fullName, String api_uri, final OnFindResultsListener listener) {
+    public static void requestBills(final JSONObject memberDetailResponse, final String memberFullName, String memberId, String action, final RequestQueue queue, final OnFindResultsListener listener) {
+        final String url = "https://api.propublica.org/congress/v1/members/"+memberId+"/bills/"+action+".json";
+
+        JsonObjectRequest proPublicaBillRequest = new JsonObjectRequest(Request.Method.GET,
+                url, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        returnedRequestCount++;
+                        parseCongressMemberJSON(memberDetailResponse, response, memberFullName, url, listener);
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        volleyErrorHandler(error, listener);
+                    }
+                }
+        ) {
+            @Override
+            public Map getHeaders() {
+                HashMap headers = new HashMap();
+                headers.put("X-API-Key", PROPUBLICA_API_KEY);
+                return headers;
+            }
+        };
+        queue.add(proPublicaBillRequest);
+    }
+
+    public static void parseCongressMemberJSON(JSONObject memberDetailJSONObject, JSONObject memberBillsJSONObject, String fullName, String api_uri, final OnFindResultsListener listener) {
         try {
-            JSONObject result = jsonObj.getJSONArray("results").getJSONObject(0);
+            JSONObject result = memberDetailJSONObject.getJSONArray("results").getJSONObject(0);
 
             CongressMemberWrapper congressMemberWrapper = new CongressMemberWrapper(result.getString("member_id"),
                     fullName, result.getString("url"), result.getString("twitter_account"),
@@ -398,30 +442,44 @@ public class DataHelper {
             JSONArray committees = result.getJSONArray("committees");
             for (int i = 0; i < committees.length(); i++) {
                 JSONObject committee = committees.getJSONObject(i);
-                committeeWrappers.add(new CommitteeWrapper(committee.getString("name"),
+                committeeWrappers.add(new CommitteeWrapper(false, committee.getString("name"),
                         committee.getString("code"), committee.getString("side"), committee.getString("title"),
                         committee.getString("end_date"), committee.getString("api_uri")));
             }
-            congressMemberWrapper.setCommittees(committeeWrappers);
 
-            List<SubCommitteeWrapper> subCommitteeWrappers = new ArrayList<>();
             JSONArray subCommittees = result.getJSONArray("subcommittees");
             for (int i = 0; i < subCommittees.length(); i++) {
                 JSONObject subCommittee = subCommittees.getJSONObject(i);
-                subCommitteeWrappers.add(new SubCommitteeWrapper(subCommittee.getString("name"),
-                        subCommittee.getString("code"), subCommittee.getString("parent_committee_id"),
-                        subCommittee.getString("side"), subCommittee.getString("title"),
+                committeeWrappers.add(new CommitteeWrapper(true, subCommittee.getString("name"),
+                        subCommittee.getString("code"), subCommittee.getString("side"), subCommittee.getString("title"),
                         subCommittee.getString("end_date"), subCommittee.getString("api_uri")));
             }
-            congressMemberWrapper.setSubCommittees(subCommitteeWrappers);
+            congressMemberWrapper.setCommitteeWrappers(committeeWrappers);
+
+            List<BillWrapper> billWrappers = new ArrayList<>();
+            result = memberBillsJSONObject.getJSONArray("results").getJSONObject(0);
+            JSONArray bills = result.getJSONArray("bills");
+            for (int i = 0; i < bills.length(); i++) {
+                JSONObject bill = bills.getJSONObject(i);
+                billWrappers.add(new BillWrapper(true, bill.getString("number"), bill.getString("short_title"),
+                        bill.getString("introduced_date"), bill.getString("committees"), bill.getString("govtrack_url")));
+            }
+            congressMemberWrapper.setBillWrappers(billWrappers);
+
             Log.e("MEMBERS", congressMemberWrapper.toString());
             congressMemberWrappers.add(congressMemberWrapper);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
-        if (listener != null) {
-            listener.onResults(congressMemberWrappers);
-        }
+        if (listener != null)
+            listener.onResults(congressMemberWrappers, returnedRequestCount==actualRequestCount);
+    }
+
+    private static void volleyErrorHandler(VolleyError error, final OnFindResultsListener listener) {
+        Log.e("VolleyError", error.toString());
+        returnedRequestCount++;
+        if (listener != null && returnedRequestCount==actualRequestCount)
+            listener.onResults(congressMemberWrappers, true);
     }
 }

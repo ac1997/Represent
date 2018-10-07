@@ -15,42 +15,43 @@ import android.view.ViewGroup;
 import java.util.List;
 
 import info.alexanderchen.represent.R;
+import info.alexanderchen.represent.adapter.BillListAdapter;
 import info.alexanderchen.represent.adapter.CommitteeListAdapter;
+import info.alexanderchen.represent.data.BillWrapper;
 import info.alexanderchen.represent.data.CommitteeWrapper;
 import info.alexanderchen.represent.decoration.InsetDividerItemDecoration;
 
-public class CommitteeTab extends Fragment {
+public class BillTab extends Fragment {
 
-    private List<CommitteeWrapper> committeeWrappers;
+    private List<BillWrapper> billWrappers;
 
-    private RecyclerView recyclerViewCommittees;
-    private CommitteeListAdapter committeeListAdapter;
+    private RecyclerView recyclerViewBill;
+    private BillListAdapter billListAdapter;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         assert getArguments() != null;
-        committeeWrappers = getArguments().getParcelableArrayList("committeeWrappers");
-        return inflater.inflate(R.layout.fragment_committee, container, false);
+        billWrappers = getArguments().getParcelableArrayList("billWrappers");
+        return inflater.inflate(R.layout.fragment_bill, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        view.findViewById(R.id.recyclerViewCommittee).setBackgroundColor(Color.WHITE);
+        view.findViewById(R.id.recyclerViewBill).setBackgroundColor(Color.WHITE);
 
-        recyclerViewCommittees = view.findViewById(R.id.recyclerViewCommittee);
-        committeeListAdapter = new CommitteeListAdapter();
-        recyclerViewCommittees.setAdapter(committeeListAdapter);
-        recyclerViewCommittees.setLayoutManager(new LinearLayoutManager(view.getContext()));
+        recyclerViewBill = view.findViewById(R.id.recyclerViewBill);
+        billListAdapter = new BillListAdapter();
+        recyclerViewBill.setAdapter(billListAdapter);
+        recyclerViewBill.setLayoutManager(new LinearLayoutManager(view.getContext()));
+        recyclerViewBill.addItemDecoration(new InsetDividerItemDecoration(view.getContext(), R.id.textViewBillName));
 
-        committeeListAdapter.swapData(committeeWrappers);
-        recyclerViewCommittees.addItemDecoration(new InsetDividerItemDecoration(view.getContext(), R.id.textViewCommitteeName));
-        recyclerViewCommittees.setAdapter(committeeListAdapter);
+        billListAdapter.swapData(billWrappers);
 
-        for(CommitteeWrapper c : committeeWrappers)
-            Log.e("COMMITTEE", c.getName());
+        for(BillWrapper c : billWrappers)
+            Log.e("BILL", c.getShortTitle());
     }
 
     @Override
