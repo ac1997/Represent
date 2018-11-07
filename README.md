@@ -1,5 +1,4 @@
 # Represent!
-##### by Alexander Chen
 Represent is an app that allows you to lookup congress members, based on either your last known location, your zip code input or just random location for you to explore.
 <p align="center"><img src="screenshots/launch_screen.png" width="256"> <img src="screenshots/detail_page.png" width="256"></p>
 
